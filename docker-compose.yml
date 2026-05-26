@@ -1,0 +1,53 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:7110:7110"
+    env_file:
+      - ./frontend/.env.local
+    environment:
+      - INTERNAL_API_URL=http://backend:7120
+    depends_on:
+      - backend
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+
+  backend:
+    build: ./backend
+    ports:
+      - "127.0.0.1:7120:7120"
+    env_file:
+      - ./backend/.env
+    environment:
+      # Override with Docker service name (backend/.env uses 127.0.0.1 for local dev)
+      - POCKETBASE_URL=http://pocketbase:7130
+    depends_on:
+      - pocketbase
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend
+          target: /app
+
+  pocketbase:
+    build: ./pocketbase
+    ports:
+      - "127.0.0.1:7130:7130"
+    environment:
+      - PB_ADMIN_EMAIL=${PB_ADMIN_EMAIL:-admin@alcsaas.dev}
+      - PB_ADMIN_PASSWORD=${PB_ADMIN_PASSWORD:-changeme}
+    volumes:
+      - ./pb_data:/pb_data
+
+  # cloudflared:
+  #   image: cloudflare/cloudflared:latest
+  #   command: tunnel run
+  #   environment:
+  #     - TUNNEL_TOKEN=${CLOUDFLARED_TOKEN}
+  #   depends_on:
+  #     - frontend
