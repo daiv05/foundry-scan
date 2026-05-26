@@ -1,7 +1,9 @@
 import Link from 'next/link'
+import { mdiFlash, mdiArrowRight, mdiPlus, mdiRocketLaunchOutline } from '@mdi/js'
 import { ssrGetScans, ssrGetOpportunities } from '@/lib/api'
 import StatusBadge from '@/components/StatusBadge'
 import OpportunityCard from '@/components/OpportunityCard'
+import Icon from '@/components/ui/Icon'
 import type { Scan } from '@/lib/types'
 
 function fmtDate(iso: string) {
@@ -13,22 +15,27 @@ function fmtDate(iso: string) {
 function PendingBanner({ scans }: { scans: Scan[] }) {
   const waiting = scans.filter(s => s.status === 'awaiting_llm_input')
   if (!waiting.length) return null
+  // Orange banner — text-black stays literal (best contrast on orange regardless of theme).
+  // Border + inner CTA use semantic tokens so they invert with the page.
   return (
-    <div className="rounded-xl border border-yellow-700 bg-yellow-950/40 px-5 py-4 flex items-start gap-4">
-      <span className="text-xl">⚡</span>
+    <div className="bg-rb-warning text-black border-[5px] border-rb-fg px-sp-4 py-sp-3 flex items-start gap-sp-3">
+      <Icon path={mdiFlash} size={28} className="shrink-0 mt-[2px]" />
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-yellow-300">
-          {waiting.length === 1 ? 'A scan' : `${waiting.length} scans`} ready for LLM input
+        <p
+          className="text-[20px] uppercase leading-tight"
+          style={{ fontFamily: 'var(--font-headline)' }}
+        >
+          {waiting.length === 1 ? 'A SCAN' : `${waiting.length} SCANS`} READY FOR LLM
         </p>
-        <p className="text-sm text-yellow-400/80 mt-0.5">
+        <p className="text-[14px] mt-[4px]">
           Copy the prompt, paste it into your LLM, then come back with the response.
         </p>
       </div>
       <Link
         href={`/scan/${waiting[0].id}/prompt`}
-        className="shrink-0 rounded-lg bg-yellow-600 hover:bg-yellow-500 text-white text-sm font-medium px-4 py-2 transition-colors"
+        className="shrink-0 inline-flex items-center gap-[6px] bg-rb-fg text-rb-bg border-[3px] border-rb-fg px-sp-3 py-[10px] uppercase text-[14px] tracking-[2px] font-semibold hover:bg-rb-bg hover:text-rb-fg"
       >
-        Open →
+        OPEN <Icon path={mdiArrowRight} size={16} />
       </Link>
     </div>
   )
@@ -41,17 +48,20 @@ export default async function DashboardPage() {
   ])
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-10">
-      <div className="flex items-center justify-between">
+    <div className="p-sp-5 max-w-[1100px] mx-auto space-y-sp-5">
+      {/* Header */}
+      <div className="flex items-end justify-between gap-sp-3 flex-wrap pb-sp-4 border-b-[3px] border-rb-fg">
         <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-sm text-gray-400 mt-1">Your micro-SaaS opportunity pipeline</p>
+          <h1 className="text-[64px] leading-none">DASHBOARD</h1>
+          <p className="text-[14px] uppercase tracking-[1px] text-rb-fg/60 mt-[8px]">
+            Your micro-SaaS opportunity pipeline
+          </p>
         </div>
         <Link
           href="/scan/new"
-          className="rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-2 text-sm transition-colors"
+          className="inline-flex items-center gap-[8px] bg-rb-fg text-rb-bg border-[3px] border-rb-fg px-sp-3 py-[10px] uppercase text-[14px] tracking-[2px] font-semibold hover:bg-rb-bg hover:text-rb-fg"
         >
-          + New Scan
+          <Icon path={mdiPlus} size={18} /> NEW SCAN
         </Link>
       </div>
 
@@ -59,22 +69,26 @@ export default async function DashboardPage() {
 
       {/* Recent scans */}
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">
-          Recent Scans
-        </h2>
+        <h3
+          className="text-[24px] uppercase mb-sp-3 leading-none"
+          style={{ fontFamily: 'var(--font-headline)' }}
+        >
+          RECENT SCANS
+        </h3>
         {scans.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-700 p-10 text-center">
-            <p className="text-gray-400 mb-4">No scans yet.</p>
+          <div className="border-[3px] border-dashed border-rb-fg p-sp-6 text-center bg-rb-sunken">
+            <Icon path={mdiRocketLaunchOutline} size={48} className="text-rb-fg mb-sp-3" />
+            <p className="text-[18px] mb-sp-3 uppercase font-semibold">No scans yet</p>
             <Link
               href="/scan/new"
-              className="rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium px-5 py-2 text-sm transition-colors inline-block"
+              className="inline-flex items-center gap-[8px] bg-rb-fg text-rb-bg border-[3px] border-rb-fg px-sp-4 py-[10px] uppercase text-[14px] tracking-[2px] font-semibold hover:bg-rb-bg hover:text-rb-fg"
             >
-              Launch your first scan →
+              LAUNCH FIRST SCAN <Icon path={mdiArrowRight} size={16} />
             </Link>
           </div>
         ) : (
-          <div className="space-y-2">
-            {scans.map(scan => (
+          <div className="border-[3px] border-rb-fg">
+            {scans.map((scan, i) => (
               <Link
                 key={scan.id}
                 href={
@@ -84,13 +98,18 @@ export default async function DashboardPage() {
                     ? `/scan/${scan.id}/prompt`
                     : `/scan/${scan.id}`
                 }
-                className="flex items-center justify-between rounded-xl border border-gray-800 bg-gray-900 px-5 py-3 hover:border-gray-600 transition-colors"
+                className={`flex items-center justify-between px-sp-3 py-sp-3 hover:bg-rb-fg hover:text-rb-bg ${i > 0 ? 'border-t-[3px] border-rb-fg' : ''}`}
               >
-                <div className="flex items-center gap-4 min-w-0">
+                <div className="flex items-center gap-sp-3 min-w-0">
                   <StatusBadge status={scan.status} />
-                  <span className="text-sm text-gray-300 truncate font-mono">{scan.id}</span>
+                  <span
+                    className="text-[14px] truncate"
+                    style={{ fontFamily: 'var(--font-mono)' }}
+                  >
+                    {scan.id}
+                  </span>
                 </div>
-                <div className="flex items-center gap-6 shrink-0 text-xs text-gray-500">
+                <div className="flex items-center gap-sp-4 shrink-0 text-[12px] uppercase tracking-[1px]">
                   {scan.llm_used && <span>{scan.llm_used}</span>}
                   <span>{fmtDate(scan.created)}</span>
                 </div>
@@ -103,15 +122,21 @@ export default async function DashboardPage() {
       {/* Top opportunities */}
       {topOpps.length > 0 && (
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-              Top Opportunities
-            </h2>
-            <Link href="/opportunities" className="text-xs text-blue-400 hover:text-blue-300">
+          <div className="flex items-end justify-between mb-sp-3">
+            <h3
+              className="text-[24px] uppercase leading-none"
+              style={{ fontFamily: 'var(--font-headline)' }}
+            >
+              TOP OPPORTUNITIES
+            </h3>
+            <Link
+              href="/opportunities"
+              className="text-[12px] uppercase tracking-[1px] underline hover:text-rb-link"
+            >
               View all →
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-sp-3">
             {topOpps.map(opp => (
               <OpportunityCard key={opp.id} opp={opp} />
             ))}
@@ -121,9 +146,9 @@ export default async function DashboardPage() {
 
       {topOpps.length === 0 && scans.length > 0 && (
         <section>
-          <div className="rounded-xl border border-dashed border-gray-700 p-10 text-center">
-            <p className="text-gray-400">No opportunities yet.</p>
-            <p className="text-sm text-gray-500 mt-1">
+          <div className="border-[3px] border-dashed border-rb-fg p-sp-6 text-center bg-rb-sunken">
+            <p className="uppercase font-semibold mb-[6px]">No opportunities yet</p>
+            <p className="text-[14px] text-rb-fg/60">
               Complete a scan and submit the LLM response to see results here.
             </p>
           </div>

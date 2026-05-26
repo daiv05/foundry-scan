@@ -3,7 +3,11 @@
 import { useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { mdiCheckBold, mdiClose, mdiFlash, mdiArrowLeft, mdiAlertOctagon } from '@mdi/js'
 import { api } from '@/lib/api'
+import Icon from '@/components/ui/Icon'
+import Button from '@/components/ui/Button'
+import { Textarea, Select } from '@/components/ui/Input'
 import type { ParseError } from '@/lib/types'
 
 const LLM_OPTIONS = [
@@ -18,10 +22,8 @@ const LLM_OPTIONS = [
 ]
 
 function tryExtractJson(text: string): { found: boolean; preview: string } {
-  // Try fence first
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i)
   if (fence) return { found: true, preview: fence[1].trim().slice(0, 300) }
-  // Try balanced brace
   const start = text.indexOf('{')
   if (start !== -1) return { found: true, preview: text.slice(start, start + 300) }
   return { found: false, preview: '' }
@@ -74,116 +76,136 @@ export default function ResponsePasterPage() {
     }
   }
 
+  // suppress unused warning
+  void editMode
+
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/" className="hover:text-gray-300">Dashboard</Link>
+    <div className="p-sp-5 max-w-[1000px] mx-auto space-y-sp-4">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-[8px] text-[12px] uppercase tracking-[1px]">
+        <Link href="/" className="underline hover:text-rb-link">Dashboard</Link>
         <span>/</span>
-        <Link href={`/scan/${id}/prompt`} className="hover:text-gray-300 font-mono">{id}</Link>
+        <Link href={`/scan/${id}/prompt`} className="underline hover:text-rb-link" style={{ fontFamily: 'var(--font-mono)' }}>{id}</Link>
         <span>/</span>
-        <span className="text-gray-300">Response</span>
+        <span>Response</span>
       </div>
 
-      <div>
-        <h1 className="text-2xl font-bold text-white">Paste LLM Response</h1>
-        <p className="text-sm text-gray-400 mt-1">
+      {/* Header */}
+      <div className="pb-sp-3 border-b-[3px] border-rb-fg">
+        <h1 className="text-[48px] leading-none">PASTE LLM RESPONSE</h1>
+        <p className="text-[14px] uppercase tracking-[1px] text-rb-fg/60 mt-[8px]">
           Paste the full response — markdown, code fences, extra text all fine.
         </p>
       </div>
 
       {/* LLM selector */}
-      <div className="flex gap-3 items-center flex-wrap">
-        <label className="text-sm text-gray-400 shrink-0">LLM used:</label>
-        <select
-          value={llmUsed}
-          onChange={e => setLlmUsed(e.target.value)}
-          className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
-        >
-          <option value="">— select —</option>
-          {LLM_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-        </select>
-      </div>
+      <Select
+        label="LLM USED"
+        value={llmUsed}
+        onChange={e => setLlmUsed(e.target.value)}
+      >
+        <option value="">— select —</option>
+        {LLM_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+      </Select>
 
-      {/* Textarea */}
+      {/* Textarea + detection */}
       <div className="relative">
-        <textarea
+        <Textarea
           value={text}
           onChange={e => { setText(e.target.value); setParseError(null) }}
           placeholder="Paste the LLM response here…"
           rows={16}
-          className="w-full rounded-xl border border-gray-700 bg-gray-900 p-4 text-sm text-gray-300 placeholder-gray-600 font-mono focus:outline-none focus:border-blue-500 resize-y transition-colors"
         />
-        {/* Detection indicator */}
         {text.length > 10 && (
-          <div className={`absolute top-3 right-3 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
-            detection.found
-              ? 'bg-green-900 text-green-300'
-              : 'bg-red-900 text-red-400'
-          }`}>
-            {detection.found ? '✓ JSON detected' : '✗ No JSON found'}
+          <div
+            className={
+              `absolute top-sp-2 right-sp-2 inline-flex items-center gap-[6px] bg-rb-bg border-[3px] px-[10px] py-[4px] ` +
+              `uppercase text-[11px] tracking-[1px] font-semibold ` +
+              `${detection.found ? 'border-rb-success text-rb-success' : 'border-rb-error text-rb-error'}`
+            }
+          >
+            <Icon path={detection.found ? mdiCheckBold : mdiClose} size={12} />
+            {detection.found ? 'JSON DETECTED' : 'NO JSON FOUND'}
           </div>
         )}
       </div>
 
       {/* JSON preview */}
       {detection.found && detection.preview && (
-        <div className="rounded-lg border border-gray-700 bg-gray-900/50 p-4">
-          <p className="text-xs text-gray-500 mb-2 font-semibold uppercase tracking-wider">Preview</p>
-          <pre className="text-xs text-gray-400 whitespace-pre-wrap break-all">{detection.preview}…</pre>
+        <div className="border-[3px] border-rb-fg bg-rb-sunken p-sp-3">
+          <p
+            className="text-[10px] uppercase tracking-[1px] mb-sp-2"
+            style={{ fontFamily: 'var(--font-headline)' }}
+          >
+            PREVIEW
+          </p>
+          <pre
+            className="text-[12px] whitespace-pre-wrap break-all"
+            style={{ fontFamily: 'var(--font-mono)' }}
+          >
+            {detection.preview}…
+          </pre>
         </div>
       )}
 
       {/* Parse error */}
       {parseError && (
-        <div className="rounded-xl border border-red-800 bg-red-950/40 p-5 space-y-3">
-          <p className="font-semibold text-red-300">Parse failed: {parseError.kind}</p>
-          <p className="text-sm text-red-400">{parseError.message}</p>
-          {parseError.hint && (
-            <p className="text-sm text-red-400/70 italic">{parseError.hint}</p>
-          )}
-          {!editMode && (
-            <button
-              onClick={() => setEditMode(true)}
-              className="text-xs text-blue-400 hover:text-blue-300 underline"
+        <div className="border-[5px] border-rb-error bg-rb-bg p-sp-3 space-y-sp-2">
+          <div className="flex items-center gap-[8px]">
+            <Icon path={mdiAlertOctagon} size={20} className="text-rb-error" />
+            <p
+              className="text-[18px] uppercase text-rb-error"
+              style={{ fontFamily: 'var(--font-headline)' }}
             >
-              Edit response manually →
-            </button>
+              PARSE FAILED: {parseError.kind}
+            </p>
+          </div>
+          <p className="text-[14px]">{parseError.message}</p>
+          {parseError.hint && (
+            <p className="text-[13px] italic text-rb-fg/60">{parseError.hint}</p>
           )}
+          <button
+            onClick={() => setEditMode(true)}
+            className="text-[12px] underline text-rb-link uppercase tracking-[1px]"
+          >
+            Edit response manually →
+          </button>
         </div>
       )}
 
       {/* Warnings */}
       {warnings.length > 0 && (
-        <div className="rounded-xl border border-yellow-800 bg-yellow-950/40 p-4 space-y-1">
-          <p className="text-sm font-semibold text-yellow-300">Warnings (auto-corrected):</p>
-          {warnings.map((w, i) => <p key={i} className="text-xs text-yellow-400">• {w}</p>)}
+        <div className="border-[3px] border-rb-warning bg-rb-bg p-sp-3 space-y-[4px]">
+          <p
+            className="text-[14px] uppercase text-rb-warning"
+            style={{ fontFamily: 'var(--font-headline)' }}
+          >
+            WARNINGS (AUTO-CORRECTED)
+          </p>
+          {warnings.map((w, i) => <p key={i} className="text-[12px]">• {w}</p>)}
         </div>
       )}
 
-      {/* Action buttons */}
-      <div className="flex gap-3 justify-end flex-wrap">
-        <Link
-          href={`/scan/${id}/prompt`}
-          className="rounded-lg border border-gray-700 hover:border-gray-500 text-gray-300 font-medium px-5 py-2.5 text-sm transition-colors"
-        >
-          ← Back to prompt
+      {/* Actions */}
+      <div className="flex gap-sp-2 justify-end flex-wrap pt-sp-2">
+        <Link href={`/scan/${id}/prompt`}>
+          <Button variant="secondary">
+            <Icon path={mdiArrowLeft} size={14} /> BACK TO PROMPT
+          </Button>
         </Link>
         {parseError && (
-          <button
-            onClick={retry}
-            disabled={submitting}
-            className="rounded-lg border border-blue-700 hover:border-blue-500 text-blue-300 font-medium px-5 py-2.5 text-sm transition-colors disabled:opacity-50"
-          >
-            Retry stored response
-          </button>
+          <Button variant="secondary" onClick={retry} disabled={submitting}>
+            RETRY STORED RESPONSE
+          </Button>
         )}
-        <button
+        <Button
           onClick={submit}
           disabled={submitting || !text.trim()}
-          className="rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold px-6 py-2.5 text-sm transition-colors"
+          size="md"
         >
-          {submitting ? 'Parsing…' : '⚡ Parse & Save'}
-        </button>
+          <Icon path={mdiFlash} size={16} />
+          {submitting ? 'PARSING…' : 'PARSE & SAVE'}
+        </Button>
       </div>
     </div>
   )

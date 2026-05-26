@@ -1,49 +1,66 @@
 import type { Scoring } from '@/lib/types'
 
 const CRITERIA: { key: keyof Scoring; label: string; weight: number }[] = [
-  { key: 'pain_intensity',  label: 'Pain',        weight: 30 },
-  { key: 'trend_momentum',  label: 'Trend',       weight: 20 },
-  { key: 'competition_gap', label: 'Competition', weight: 25 },
-  { key: 'mvp_feasibility', label: 'MVP fit',     weight: 25 },
+  { key: 'pain_intensity',  label: 'PAIN',        weight: 30 },
+  { key: 'trend_momentum',  label: 'TREND',       weight: 20 },
+  { key: 'competition_gap', label: 'COMPETITION', weight: 25 },
+  { key: 'mvp_feasibility', label: 'MVP FIT',     weight: 25 },
 ]
 
-function barColor(value: number): string {
-  if (value >= 8) return 'bg-green-500'
-  if (value >= 5) return 'bg-yellow-500'
-  return 'bg-red-500'
+function barFill(value: number): string {
+  if (value >= 8) return 'bg-rb-success'
+  if (value >= 5) return 'bg-rb-warning'
+  return 'bg-rb-error'
 }
 
 export default function ScoreBar({ scoring, totalScore }: { scoring: Scoring; totalScore: number }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-[12px]">
       {CRITERIA.map(({ key, label, weight }) => {
         const value = scoring[key]
         return (
-          <div key={key} className="flex items-center gap-3">
-            <span className="w-28 shrink-0 text-sm text-gray-400">
-              {label} <span className="text-gray-600 text-xs">({weight}%)</span>
+          <div key={key} className="flex items-center gap-[12px]">
+            <span
+              className="w-[140px] shrink-0 text-[11px] uppercase tracking-[1px] text-rb-fg"
+              style={{ fontFamily: 'var(--font-headline)' }}
+            >
+              {label}
+              <span className="text-rb-fg/50 ml-[6px] font-normal">
+                {weight}%
+              </span>
             </span>
-            <div className="flex-1 rounded-full bg-gray-800 h-2">
+            <div className="flex-1 bg-rb-bg border-[2px] border-rb-fg h-[14px] relative">
               <div
-                className={`h-2 rounded-full transition-all ${barColor(value)}`}
+                className={`absolute inset-y-0 left-0 ${barFill(value)}`}
                 style={{ width: `${value * 10}%` }}
               />
             </div>
-            <span className="w-6 text-right text-sm font-semibold tabular-nums text-gray-300">
+            <span
+              className="w-[28px] text-right text-[14px] font-bold tabular-nums text-rb-fg"
+              style={{ fontFamily: 'var(--font-mono)' }}
+            >
               {value}
             </span>
           </div>
         )
       })}
-      <div className="flex items-center gap-3 border-t border-gray-800 pt-2 mt-1">
-        <span className="w-28 shrink-0 text-sm font-semibold text-gray-300">Total</span>
-        <div className="flex-1 rounded-full bg-gray-800 h-2.5">
+      <div className="flex items-center gap-[12px] border-t-[3px] border-rb-fg pt-[12px] mt-[8px]">
+        <span
+          className="w-[140px] shrink-0 text-[14px] uppercase tracking-[1px] text-rb-fg"
+          style={{ fontFamily: 'var(--font-headline)' }}
+        >
+          TOTAL
+        </span>
+        <div className="flex-1 bg-rb-bg border-[3px] border-rb-fg h-[18px] relative">
           <div
-            className={`h-2.5 rounded-full transition-all ${barColor(totalScore)}`}
+            className={`absolute inset-y-0 left-0 ${barFill(totalScore)}`}
             style={{ width: `${totalScore * 10}%` }}
           />
         </div>
-        <span className="w-6 text-right text-sm font-bold tabular-nums text-white">
+        <span
+          className="w-[40px] text-right text-[18px] font-bold tabular-nums text-rb-fg"
+          style={{ fontFamily: 'var(--font-mono)' }}
+        >
           {totalScore.toFixed(1)}
         </span>
       </div>

@@ -2,24 +2,36 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { mdiViewDashboard, mdiTargetVariant, mdiPlus, mdiCog, mdiWeatherSunny, mdiWeatherNight } from '@mdi/js'
+import Icon from './ui/Icon'
+import { useTheme } from '@/lib/useTheme'
 
 const LINKS = [
-  { href: '/',               label: 'Dashboard',      icon: '⌂' },
-  { href: '/opportunities',  label: 'Opportunities',  icon: '◈' },
-  { href: '/scan/new',       label: 'New Scan',       icon: '+' },
-  { href: '/settings',       label: 'Settings',       icon: '⚙' },
+  { href: '/',              label: 'Dashboard',     icon: mdiViewDashboard },
+  { href: '/opportunities', label: 'Opportunities', icon: mdiTargetVariant },
+  { href: '/scan/new',      label: 'New Scan',      icon: mdiPlus },
+  { href: '/settings',      label: 'Settings',      icon: mdiCog },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const { theme, toggle } = useTheme()
 
   return (
-    <aside className="flex flex-col w-56 shrink-0 border-r border-gray-800 bg-gray-950 min-h-screen px-3 py-6">
-      <div className="mb-8 px-3">
-        <span className="text-lg font-bold tracking-tight text-white">AlcSaaS</span>
-        <p className="text-xs text-gray-500 mt-0.5">Opportunity finder</p>
+    <aside className="flex flex-col w-[260px] shrink-0 border-r-[3px] border-rb-fg bg-rb-bg h-screen sticky top-0">
+      {/* Brand */}
+      <div className="border-b-[3px] border-rb-fg p-sp-4">
+        <p className="leading-none" style={{ fontFamily: 'var(--font-headline)' }}>
+          <span className="block text-[24px] text-rb-fg tracking-[1px]">FOUNDRY</span>
+          <span className="block text-[20px] text-rb-fg/80 tracking-[3px]">SCAN</span>
+        </p>
+        <p className="text-[12px] text-rb-fg/60 uppercase tracking-[1px] mt-[6px]">
+          Opportunity finder
+        </p>
       </div>
-      <nav className="flex flex-col gap-1">
+
+      {/* Nav */}
+      <nav className="flex flex-col">
         {LINKS.map(({ href, label, icon }) => {
           const active =
             href === '/' ? pathname === '/' : pathname.startsWith(href)
@@ -27,18 +39,33 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                active
-                  ? 'bg-gray-800 text-white font-medium'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-900'
-              }`}
+              className={
+                `flex items-center gap-[12px] px-sp-4 py-[14px] ` +
+                `border-b-[3px] border-rb-fg ` +
+                `uppercase text-[14px] tracking-[1px] font-semibold ` +
+                `${active
+                  ? 'bg-rb-fg text-rb-bg'
+                  : 'bg-rb-bg text-rb-fg hover:bg-rb-fg hover:text-rb-bg'}`
+              }
             >
-              <span className="w-4 text-center font-mono text-base leading-none">{icon}</span>
+              <Icon path={icon} size={20} />
               {label}
             </Link>
           )
         })}
       </nav>
+
+      {/* Theme toggle */}
+      <div className="mt-auto border-t-[3px] border-rb-fg">
+        <button
+          onClick={toggle}
+          className="w-full flex items-center justify-between px-sp-4 py-[14px] uppercase text-[12px] tracking-[1px] font-semibold text-rb-fg bg-rb-bg hover:bg-rb-fg hover:text-rb-bg cursor-pointer"
+          title="Toggle theme"
+        >
+          <span>{theme === 'dark' ? 'DARK MODE' : 'LIGHT MODE'}</span>
+          <Icon path={theme === 'dark' ? mdiWeatherNight : mdiWeatherSunny} size={20} />
+        </button>
+      </div>
     </aside>
   )
 }

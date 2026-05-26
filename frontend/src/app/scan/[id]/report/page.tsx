@@ -1,7 +1,9 @@
 import Link from 'next/link'
+import { mdiDownload, mdiFileDocumentOutline } from '@mdi/js'
 import { ssrGetScan, ssrGetOpportunities } from '@/lib/api'
 import OpportunityCard from '@/components/OpportunityCard'
 import StatusBadge from '@/components/StatusBadge'
+import Icon from '@/components/ui/Icon'
 
 function fmtDate(iso?: string) {
   if (!iso) return '—'
@@ -20,75 +22,94 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
   if (!scan) {
     return (
-      <div className="p-8">
-        <p className="text-red-400">Scan not found.</p>
-        <Link href="/" className="text-blue-400 text-sm mt-2 block">← Back</Link>
+      <div className="p-sp-5">
+        <p className="text-rb-error uppercase">Scan not found.</p>
+        <Link href="/" className="text-rb-link underline text-[14px] mt-sp-2 block">← Back</Link>
       </div>
     )
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
+    <div className="p-sp-5 max-w-[1100px] mx-auto space-y-sp-5">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/" className="hover:text-gray-300">Dashboard</Link>
+      <div className="flex items-center gap-[8px] text-[12px] uppercase tracking-[1px]">
+        <Link href="/" className="underline hover:text-rb-link">Dashboard</Link>
         <span>/</span>
-        <span className="font-mono text-gray-300">{id}</span>
+        <span style={{ fontFamily: 'var(--font-mono)' }}>{id}</span>
         <span>/</span>
-        <span className="text-gray-300">Report</span>
+        <span>Report</span>
       </div>
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex items-end justify-between gap-sp-3 flex-wrap pb-sp-4 border-b-[3px] border-rb-fg">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-white">Scan Report</h1>
+          <div className="flex items-center gap-sp-3 flex-wrap">
+            <h1 className="text-[48px] leading-none">SCAN REPORT</h1>
             <StatusBadge status={scan.status} />
           </div>
-          <p className="text-sm text-gray-400 font-mono">{id}</p>
+          <p
+            className="text-[14px] mt-[8px]"
+            style={{ fontFamily: 'var(--font-mono)' }}
+          >
+            {id}
+          </p>
         </div>
         {/* Export buttons */}
-        <div className="flex gap-2">
+        <div className="flex gap-sp-2">
           <a
             href={`/api/scans/${id}/export/markdown`}
             download
-            className="rounded-lg border border-gray-700 hover:border-gray-500 text-gray-300 text-sm font-medium px-4 py-2 transition-colors"
+            className="inline-flex items-center gap-[8px] bg-rb-bg text-rb-fg border-[3px] border-rb-fg px-sp-3 py-[10px] uppercase text-[14px] tracking-[2px] font-semibold hover:bg-rb-fg hover:text-rb-bg"
           >
-            ↓ Export .md
+            <Icon path={mdiDownload} size={16} /> .MD
           </a>
           <a
             href={`/api/scans/${id}/export/prompt.txt`}
             download
-            className="rounded-lg border border-gray-700 hover:border-gray-500 text-gray-300 text-sm font-medium px-4 py-2 transition-colors"
+            className="inline-flex items-center gap-[8px] bg-rb-bg text-rb-fg border-[3px] border-rb-fg px-sp-3 py-[10px] uppercase text-[14px] tracking-[2px] font-semibold hover:bg-rb-fg hover:text-rb-bg"
           >
-            ↓ Prompt .txt
+            <Icon path={mdiDownload} size={16} /> PROMPT
           </a>
         </div>
       </div>
 
       {/* Scan metadata */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-[3px] border-rb-fg">
         {[
-          { label: 'Opportunities', value: String(opps.length) },
-          { label: 'LLM used',      value: scan.llm_used || '—' },
-          { label: 'Completed',     value: fmtDate(scan.completed_at) },
-          { label: 'Tokens est.',   value: scan.prompt_tokens_est ? `~${scan.prompt_tokens_est.toLocaleString()}` : '—' },
-        ].map(({ label, value }) => (
-          <div key={label} className="rounded-xl border border-gray-800 bg-gray-900 px-5 py-4">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{label}</p>
-            <p className="text-sm font-semibold text-white truncate">{value}</p>
+          { label: 'OPPORTUNITIES', value: String(opps.length) },
+          { label: 'LLM USED',      value: scan.llm_used || '—' },
+          { label: 'COMPLETED',     value: fmtDate(scan.completed_at) },
+          { label: 'TOKENS EST.',   value: scan.prompt_tokens_est ? `~${scan.prompt_tokens_est.toLocaleString()}` : '—' },
+        ].map(({ label, value }, i) => (
+          <div
+            key={label}
+            className={`px-sp-3 py-sp-3 bg-rb-bg ${i < 3 ? 'md:border-r-[3px] md:border-rb-fg' : ''} ${i < 2 ? 'border-r-[3px] border-rb-fg md:border-r-[3px]' : ''} ${i >= 2 ? 'border-t-[3px] border-rb-fg md:border-t-0' : ''}`}
+          >
+            <p
+              className="text-[10px] uppercase tracking-[1px] mb-[6px]"
+              style={{ fontFamily: 'var(--font-headline)' }}
+            >
+              {label}
+            </p>
+            <p
+              className="text-[14px] font-semibold truncate"
+              style={{ fontFamily: 'var(--font-mono)' }}
+            >
+              {value}
+            </p>
           </div>
         ))}
       </div>
 
       {/* Opportunities */}
       {opps.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-700 p-10 text-center">
-          <p className="text-gray-400 mb-2">No opportunities parsed yet.</p>
+        <div className="border-[3px] border-dashed border-rb-fg bg-rb-sunken p-sp-6 text-center">
+          <Icon path={mdiFileDocumentOutline} size={48} />
+          <p className="uppercase font-semibold mt-sp-2 mb-sp-2">No opportunities parsed yet</p>
           {scan.status === 'awaiting_llm_input' && (
             <Link
               href={`/scan/${id}/prompt`}
-              className="text-blue-400 hover:text-blue-300 text-sm"
+              className="text-rb-link underline text-[14px] uppercase tracking-[1px]"
             >
               Go to prompt →
             </Link>
@@ -96,10 +117,13 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         </div>
       ) : (
         <section>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">
-            Opportunities — ranked by score
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h3
+            className="text-[24px] uppercase mb-sp-3 leading-none"
+            style={{ fontFamily: 'var(--font-headline)' }}
+          >
+            OPPORTUNITIES — RANKED BY SCORE
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-sp-3">
             {opps.map(opp => (
               <OpportunityCard key={opp.id} opp={opp} />
             ))}
@@ -108,14 +132,19 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
       )}
 
       {/* Links to raw data */}
-      <div className="flex gap-4 text-sm text-gray-500 border-t border-gray-800 pt-4">
-        <Link href={`/scan/${id}/prompt`} className="hover:text-blue-400">View prompt</Link>
+      <div className="flex gap-sp-4 text-[12px] uppercase tracking-[1px] border-t-[3px] border-rb-fg pt-sp-3 flex-wrap">
+        <Link href={`/scan/${id}/prompt`} className="underline hover:text-rb-link">View prompt</Link>
         {scan.llm_response_raw && (
-          <a href={`/api/scans/${id}/response/raw`} target="_blank" rel="noopener" className="hover:text-blue-400">
+          <a
+            href={`/api/scans/${id}/response/raw`}
+            target="_blank"
+            rel="noopener"
+            className="underline hover:text-rb-link"
+          >
             View raw response
           </a>
         )}
-        <Link href={`/scan/${id}/response`} className="hover:text-blue-400">
+        <Link href={`/scan/${id}/response`} className="underline hover:text-rb-link">
           {scan.status === 'completed' ? 'Re-paste response' : 'Paste response'}
         </Link>
       </div>

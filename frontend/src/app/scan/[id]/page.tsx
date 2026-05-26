@@ -3,16 +3,19 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { mdiCheckBold, mdiArrowRight, mdiAlertOctagon } from '@mdi/js'
 import { api } from '@/lib/api'
+import Icon from '@/components/ui/Icon'
+import Button from '@/components/ui/Button'
 import type { Scan, ScanStatus } from '@/lib/types'
 
 const STEPS: { status: ScanStatus | 'done'; label: string }[] = [
-  { status: 'pending',            label: 'Queued' },
-  { status: 'collecting',         label: 'Collecting data' },
-  { status: 'processing',         label: 'Processing & clustering' },
-  { status: 'awaiting_llm_input', label: 'Building prompt' },
-  { status: 'parsing',            label: 'Parsing response' },
-  { status: 'completed',          label: 'Completed' },
+  { status: 'pending',            label: 'QUEUED' },
+  { status: 'collecting',         label: 'COLLECTING DATA' },
+  { status: 'processing',         label: 'PROCESSING & CLUSTERING' },
+  { status: 'awaiting_llm_input', label: 'BUILDING PROMPT' },
+  { status: 'parsing',            label: 'PARSING RESPONSE' },
+  { status: 'completed',          label: 'COMPLETED' },
 ]
 
 const TERMINAL: ScanStatus[] = ['awaiting_llm_input', 'completed', 'failed']
@@ -53,16 +56,16 @@ export default function ScanProgressPage() {
 
   if (error) {
     return (
-      <div className="p-8 max-w-xl mx-auto">
-        <p className="text-red-400">{error}</p>
-        <Link href="/" className="text-blue-400 text-sm mt-4 block">← Back to dashboard</Link>
+      <div className="p-sp-5 max-w-[640px] mx-auto">
+        <div className="border-[3px] border-rb-error bg-rb-bg text-rb-error p-sp-3">{error}</div>
+        <Link href="/" className="text-rb-link underline text-[14px] mt-sp-3 inline-block">← Back to dashboard</Link>
       </div>
     )
   }
 
   if (!scan) {
     return (
-      <div className="p-8 max-w-xl mx-auto text-gray-400 text-sm animate-pulse">
+      <div className="p-sp-5 max-w-[640px] mx-auto text-rb-fg uppercase text-[14px] tracking-[1px]">
         Loading scan…
       </div>
     )
@@ -71,45 +74,45 @@ export default function ScanProgressPage() {
   const currentIdx = stepIndex(scan.status)
 
   return (
-    <div className="p-8 max-w-xl mx-auto">
-      <div className="flex items-center gap-2 mb-1">
-        <Link href="/" className="text-gray-500 hover:text-gray-300 text-sm">Dashboard</Link>
-        <span className="text-gray-700">/</span>
-        <span className="text-gray-300 text-sm font-mono">{id}</span>
+    <div className="p-sp-5 max-w-[640px] mx-auto">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-[8px] text-[12px] uppercase tracking-[1px] mb-sp-3">
+        <Link href="/" className="underline hover:text-rb-link">Dashboard</Link>
+        <span>/</span>
+        <span style={{ fontFamily: 'var(--font-mono)' }}>{id}</span>
       </div>
 
-      <h1 className="text-2xl font-bold text-white mt-4 mb-2">Scan in progress</h1>
-      <p className="text-sm text-gray-400 mb-8">
-        This page auto-updates every 3 seconds.
+      <h1 className="text-[48px] leading-none mb-sp-2">SCAN IN PROGRESS</h1>
+      <p className="text-[14px] uppercase tracking-[1px] text-rb-fg/60 mb-sp-5">
+        Auto-updates every 3 seconds
       </p>
 
       {/* Progress steps */}
-      <div className="space-y-3 mb-10">
+      <div className="border-[3px] border-rb-fg bg-rb-bg mb-sp-5">
         {STEPS.filter(s => s.status !== 'done').map((step, i) => {
-          const done    = i < currentIdx
-          const active  = i === currentIdx
-          const waiting = i > currentIdx
+          const done   = i < currentIdx
+          const active = i === currentIdx
 
           return (
-            <div key={step.status} className="flex items-center gap-4">
+            <div
+              key={step.status}
+              className={`flex items-center gap-sp-3 px-sp-3 py-sp-3 ${i > 0 ? 'border-t-[3px] border-rb-fg' : ''} ${active ? 'bg-rb-warning' : done ? 'bg-rb-bg' : 'bg-rb-sunken'}`}
+            >
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                  done    ? 'bg-green-700 text-green-200' :
-                  active  ? 'bg-blue-600 text-white animate-pulse' :
-                            'bg-gray-800 text-gray-500'
-                }`}
+                className={
+                  `w-[36px] h-[36px] border-[3px] border-rb-fg flex items-center justify-center text-[14px] font-bold shrink-0 ` +
+                  `${done ? 'bg-rb-success text-white' : active ? 'bg-rb-fg text-rb-bg' : 'bg-rb-bg text-rb-fg/40'}`
+                }
+                style={{ fontFamily: 'var(--font-mono)' }}
               >
-                {done ? '✓' : i + 1}
+                {done ? <Icon path={mdiCheckBold} size={18} /> : i + 1}
               </div>
               <span
-                className={`text-sm ${
-                  done    ? 'text-green-400' :
-                  active  ? 'text-white font-medium' :
-                            'text-gray-600'
-                }`}
+                className={`text-[14px] uppercase tracking-[1px] ${active ? 'font-bold text-black' : done ? 'text-rb-fg' : 'text-rb-fg/40'}`}
+                style={{ fontFamily: 'var(--font-headline)' }}
               >
                 {step.label}
-                {active && !waiting && <span className="ml-2 text-gray-500">…</span>}
+                {active && <span className="ml-[8px]">…</span>}
               </span>
             </div>
           )
@@ -118,31 +121,51 @@ export default function ScanProgressPage() {
 
       {/* Terminal states */}
       {scan.status === 'awaiting_llm_input' && (
-        <div className="rounded-xl border border-yellow-700 bg-yellow-950/40 p-6 space-y-4">
-          <p className="font-semibold text-yellow-300">✅ Prompt is ready!</p>
-          <p className="text-sm text-yellow-400/80">
+        <div className="border-[5px] border-rb-fg bg-rb-warning p-sp-4 space-y-sp-3">
+          <p
+            className="text-[24px] leading-none uppercase"
+            style={{ fontFamily: 'var(--font-headline)' }}
+          >
+            PROMPT IS READY
+          </p>
+          <p className="text-[14px]">
             Copy the prompt and paste it into your LLM of choice. Then come back with the response.
           </p>
-          <div className="flex gap-3">
-            <Link
-              href={`/scan/${id}/prompt`}
-              className="rounded-lg bg-yellow-600 hover:bg-yellow-500 text-white font-medium px-5 py-2.5 text-sm transition-colors"
-            >
-              Open prompt →
-            </Link>
-          </div>
+          <Link
+            href={`/scan/${id}/prompt`}
+            className="inline-flex items-center gap-[8px] bg-rb-fg text-rb-bg border-[3px] border-rb-fg px-sp-4 py-[10px] uppercase text-[14px] tracking-[2px] font-semibold hover:bg-rb-bg hover:text-rb-fg"
+          >
+            OPEN PROMPT <Icon path={mdiArrowRight} size={16} />
+          </Link>
         </div>
       )}
 
       {scan.status === 'failed' && (
-        <div className="rounded-xl border border-red-800 bg-red-950/40 p-6">
-          <p className="font-semibold text-red-300 mb-2">Scan failed</p>
-          <p className="text-sm text-red-400 font-mono">{scan.error_message || 'Unknown error'}</p>
-          <Link href="/scan/new" className="mt-4 text-sm text-blue-400 hover:text-blue-300 block">
+        <div className="border-[5px] border-rb-error bg-rb-bg p-sp-4">
+          <div className="flex items-center gap-[8px] mb-sp-2">
+            <Icon path={mdiAlertOctagon} size={24} className="text-rb-error" />
+            <p className="text-[24px] uppercase text-rb-error" style={{ fontFamily: 'var(--font-headline)' }}>
+              SCAN FAILED
+            </p>
+          </div>
+          <p
+            className="text-[13px] bg-rb-sunken border-[2px] border-rb-fg p-sp-2 break-words"
+            style={{ fontFamily: 'var(--font-mono)' }}
+          >
+            {scan.error_message || 'Unknown error'}
+          </p>
+          <Link
+            href="/scan/new"
+            className="mt-sp-3 inline-flex items-center gap-[8px] underline text-rb-link text-[14px] uppercase tracking-[1px]"
+          >
             Start a new scan →
           </Link>
         </div>
       )}
+
+      <div className="mt-sp-5">
+        <Button variant="ghost" onClick={() => router.push('/')}>← Back to Dashboard</Button>
+      </div>
     </div>
   )
 }

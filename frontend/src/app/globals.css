@@ -1,1 +1,98 @@
 @import "tailwindcss";
+
+/* ── Dark mode variant (Tailwind v4) ─────────────────────────────────── */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── RawBlock Design Tokens ──────────────────────────────────────────── */
+
+@theme {
+  /* Semantic colors — auto-invert via .dark class on <html> */
+  --color-rb-fg:               #000000;   /* primary: text, borders, inverted bg */
+  --color-rb-bg:               #FFFFFF;   /* primary background */
+  --color-rb-sunken:           #F0F0F0;   /* input fill, panel inset */
+  --color-rb-sunken-hover:     #E8E8E8;
+  --color-rb-disabled-bg:      #F5F5F5;
+  --color-rb-disabled-border:  #CCCCCC;
+
+  /* Constants — same in both themes */
+  --color-rb-link:     #0000FF;
+  --color-rb-success:  #008000;
+  --color-rb-warning:  #FFA500;
+  --color-rb-error:    #FF0000;
+
+  /* Spacing (intentionally irregular base) */
+  --spacing-sp-1: 4px;
+  --spacing-sp-2: 8px;
+  --spacing-sp-3: 16px;
+  --spacing-sp-4: 24px;
+  --spacing-sp-5: 40px;
+  --spacing-sp-6: 64px;
+  --spacing-sp-7: 80px;
+  --spacing-sp-8: 120px;
+
+  /* Typography */
+  --font-headline: "Archivo Black", "Arial Black", sans-serif;
+  --font-body:     "Work Sans", system-ui, sans-serif;
+  --font-mono:     "Space Mono", ui-monospace, monospace;
+
+  /* No radius, no shadow — globally */
+  --radius-none: 0px;
+}
+
+/* ── Dark mode token overrides ───────────────────────────────────────── */
+
+.dark {
+  --color-rb-fg:              #FFFFFF;
+  --color-rb-bg:              #000000;
+  --color-rb-sunken:          #1A1A1A;
+  --color-rb-sunken-hover:    #262626;
+  --color-rb-disabled-bg:     #0F0F0F;
+  --color-rb-disabled-border: #333333;
+}
+
+/* ── Global resets — enforce RawBlock principles ─────────────────────── */
+
+html {
+  background: var(--color-rb-bg);
+  color: var(--color-rb-fg);
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  background: var(--color-rb-bg);
+  color: var(--color-rb-fg);
+}
+
+/* Force 0 radius and 0 shadow everywhere */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Headlines */
+h1, .rb-h1 { font-family: var(--font-headline); font-size: 64px; line-height: 1.0;  font-weight: 400; }
+h2, .rb-h2 { font-family: var(--font-headline); font-size: 48px; line-height: 1.05; font-weight: 400; }
+h3, .rb-h3 { font-family: var(--font-headline); font-size: 32px; line-height: 1.1;  font-weight: 400; }
+h4, .rb-h4 { font-family: var(--font-body);     font-size: 22px; line-height: 1.2;  font-weight: 600; }
+
+.rb-mono {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Selection — inverted */
+::selection {
+  background: var(--color-rb-fg);
+  color:      var(--color-rb-bg);
+}
+
+/* Scrollbar — flat */
+::-webkit-scrollbar           { width: 12px; height: 12px; }
+::-webkit-scrollbar-track     { background: var(--color-rb-bg); }
+::-webkit-scrollbar-thumb     { background: var(--color-rb-fg); border: 3px solid var(--color-rb-bg); }

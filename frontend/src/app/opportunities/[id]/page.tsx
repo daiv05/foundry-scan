@@ -3,21 +3,23 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { mdiCheckBold, mdiArrowLeft, mdiArrowRight } from '@mdi/js'
 import { api } from '@/lib/api'
 import type { Opportunity, OpportunityStatus } from '@/lib/types'
 import ScoreBar from '@/components/ScoreBar'
 import ScoreBadge from '@/components/ScoreBadge'
-
-const STATUS_FLOW: OpportunityStatus[] = ['new', 'evaluating', 'building', 'archived']
-const STATUS_COLORS: Record<OpportunityStatus, string> = {
-  new:        'border-gray-700 text-gray-400',
-  evaluating: 'border-yellow-700 bg-yellow-950/30 text-yellow-300',
-  discarded:  'border-red-800 bg-red-950/30 text-red-400',
-  building:   'border-green-700 bg-green-950/30 text-green-300',
-  archived:   'border-gray-700 text-gray-500',
-}
+import Icon from '@/components/ui/Icon'
+import { Textarea } from '@/components/ui/Input'
 
 const STATUS_ALL: OpportunityStatus[] = ['new', 'evaluating', 'building', 'discarded', 'archived']
+
+const STATUS_STYLES: Record<OpportunityStatus, { bg: string; border: string; text: string }> = {
+  new:        { bg: 'bg-rb-bg',    border: 'border-rb-fg',   text: 'text-rb-fg' },
+  evaluating: { bg: 'bg-rb-warning', border: 'border-rb-fg',  text: 'text-black' },
+  discarded:  { bg: 'bg-rb-error', border: 'border-rb-fg',  text: 'text-white' },
+  building:   { bg: 'bg-rb-success', border: 'border-rb-fg',  text: 'text-white' },
+  archived:   { bg: 'bg-rb-sunken', border: 'border-rb-fg',  text: 'text-rb-fg' },
+}
 
 export default function OpportunityDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -53,57 +55,74 @@ export default function OpportunityDetailPage() {
     }, 800)
   }, [id])
 
-  if (!opp) return <div className="p-8 text-gray-400 animate-pulse text-sm">Loading…</div>
+  if (!opp) return <div className="p-sp-5 uppercase tracking-[1px]">Loading…</div>
 
   const evidence = Array.isArray(opp.evidence) ? opp.evidence : opp.evidence ? [opp.evidence] : []
 
   return (
-    <div className="p-8 max-w-3xl mx-auto space-y-8">
+    <div className="p-sp-5 max-w-[860px] mx-auto space-y-sp-5">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/opportunities" className="hover:text-gray-300">Opportunities</Link>
+      <div className="flex items-center gap-[8px] text-[12px] uppercase tracking-[1px]">
+        <Link href="/opportunities" className="underline hover:text-rb-link">Opportunities</Link>
         <span>/</span>
-        <span className="text-gray-300 truncate">{opp.name ?? id}</span>
+        <span className="truncate">{opp.name ?? id}</span>
       </div>
 
       {/* Header */}
-      <div className="flex items-start gap-4 justify-between flex-wrap">
-        <div className="min-w-0">
-          <div className="flex items-center gap-3 flex-wrap">
-            {opp.rank != null && (
-              <span className="text-sm font-mono text-gray-500">#{opp.rank}</span>
-            )}
-            <h1 className="text-2xl font-bold text-white">{opp.name}</h1>
-            {opp.score != null && <ScoreBadge score={opp.score} />}
-          </div>
-          <p className="text-gray-400 mt-2">{opp.problem}</p>
+      <div className="pb-sp-4 border-b-[3px] border-rb-fg">
+        <div className="flex items-baseline gap-sp-3 flex-wrap mb-sp-2">
+          {opp.rank != null && (
+            <span
+              className="text-[24px] font-bold text-rb-fg/60"
+              style={{ fontFamily: 'var(--font-mono)' }}
+            >
+              #{opp.rank}
+            </span>
+          )}
+          <h1 className="text-[48px] leading-none flex-1 min-w-0 break-words">{opp.name?.toUpperCase()}</h1>
+          {opp.score != null && <ScoreBadge score={opp.score} size="md" />}
         </div>
+        <p className="text-[16px] leading-relaxed mt-sp-2">{opp.problem}</p>
       </div>
 
       {/* Status buttons */}
       <div>
-        <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Your status</p>
-        <div className="flex gap-2 flex-wrap">
-          {STATUS_ALL.map(s => (
-            <button
-              key={s}
-              onClick={() => updateStatus(s)}
-              className={`rounded-lg border px-4 py-2 text-xs font-medium transition-colors capitalize ${
-                opp.user_status === s
-                  ? STATUS_COLORS[s]
-                  : 'border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+        <p
+          className="text-[10px] uppercase tracking-[1px] mb-sp-2"
+          style={{ fontFamily: 'var(--font-headline)' }}
+        >
+          YOUR STATUS
+        </p>
+        <div className="flex gap-[6px] flex-wrap">
+          {STATUS_ALL.map(s => {
+            const active = opp.user_status === s
+            const styles = STATUS_STYLES[s]
+            return (
+              <button
+                key={s}
+                onClick={() => updateStatus(s)}
+                className={
+                  `inline-flex items-center gap-[6px] border-[3px] px-sp-3 py-[8px] uppercase text-[12px] tracking-[2px] font-semibold cursor-pointer ` +
+                  `${active ? `${styles.bg} ${styles.border} ${styles.text}` : 'bg-rb-bg border-rb-fg text-rb-fg hover:bg-rb-fg hover:text-rb-bg'}`
+                }
+              >
+                {active && <Icon path={mdiCheckBold} size={12} />}
+                {s}
+              </button>
+            )
+          })}
         </div>
       </div>
 
       {/* Score breakdown */}
       {opp.scoring && opp.score != null && (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-          <h2 className="text-sm font-semibold text-gray-300 mb-4">Score Breakdown</h2>
+        <div className="border-[3px] border-rb-fg bg-rb-bg p-sp-4">
+          <h3
+            className="text-[20px] uppercase mb-sp-3 leading-none"
+            style={{ fontFamily: 'var(--font-headline)' }}
+          >
+            SCORE BREAKDOWN
+          </h3>
           <ScoreBar scoring={opp.scoring} totalScore={opp.score} />
         </div>
       )}
@@ -111,10 +130,19 @@ export default function OpportunityDetailPage() {
       {/* Evidence */}
       {evidence.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-gray-300 mb-3">Evidence</h2>
-          <div className="flex flex-wrap gap-2">
+          <h3
+            className="text-[20px] uppercase mb-sp-2 leading-none"
+            style={{ fontFamily: 'var(--font-headline)' }}
+          >
+            EVIDENCE
+          </h3>
+          <div className="flex flex-wrap gap-[6px]">
             {evidence.map((e, i) => (
-              <span key={i} className="rounded-full border border-blue-800 bg-blue-950/40 text-blue-300 text-xs px-3 py-1">
+              <span
+                key={i}
+                className="inline-block bg-rb-bg border-[2px] border-rb-fg px-[10px] py-[4px] text-[12px]"
+                style={{ fontFamily: 'var(--font-mono)' }}
+              >
                 {String(e)}
               </span>
             ))}
@@ -123,27 +151,37 @@ export default function OpportunityDetailPage() {
       )}
 
       {/* Details grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-sp-3">
         {[
-          { label: 'Target user',   value: opp.target_user },
-          { label: 'Build time',    value: opp.build_time },
-          { label: 'Monetization',  value: opp.monetization },
+          { label: 'TARGET USER',  value: opp.target_user },
+          { label: 'BUILD TIME',   value: opp.build_time },
+          { label: 'MONETIZATION', value: opp.monetization },
         ].map(({ label, value }) => value ? (
-          <div key={label} className="rounded-xl border border-gray-800 bg-gray-900 px-5 py-4">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{label}</p>
-            <p className="text-sm text-gray-200">{value}</p>
+          <div key={label} className="border-[3px] border-rb-fg bg-rb-bg px-sp-3 py-sp-3">
+            <p
+              className="text-[10px] uppercase tracking-[1px] mb-[6px]"
+              style={{ fontFamily: 'var(--font-headline)' }}
+            >
+              {label}
+            </p>
+            <p className="text-[14px]">{value}</p>
           </div>
         ) : null)}
       </div>
 
       {/* MVP features */}
       {opp.mvp_features && opp.mvp_features.length > 0 && (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 px-5 py-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">MVP Features</p>
-          <ul className="space-y-1">
+        <div className="border-[3px] border-rb-fg bg-rb-bg p-sp-3">
+          <p
+            className="text-[10px] uppercase tracking-[1px] mb-sp-2"
+            style={{ fontFamily: 'var(--font-headline)' }}
+          >
+            MVP FEATURES
+          </p>
+          <ul className="space-y-[6px]">
             {opp.mvp_features.map((f, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
-                <span className="text-green-500 mt-0.5 shrink-0">✓</span>
+              <li key={i} className="flex items-start gap-sp-2 text-[14px]">
+                <Icon path={mdiCheckBold} size={16} className="text-rb-success mt-[2px] shrink-0" />
                 {f}
               </li>
             ))}
@@ -153,35 +191,44 @@ export default function OpportunityDetailPage() {
 
       {/* Reasoning */}
       {opp.reasoning && (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 px-5 py-4">
-          <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">LLM Reasoning</p>
-          <p className="text-sm text-gray-300 leading-relaxed">{opp.reasoning}</p>
+        <div className="border-[3px] border-rb-fg bg-rb-bg p-sp-3">
+          <p
+            className="text-[10px] uppercase tracking-[1px] mb-sp-2"
+            style={{ fontFamily: 'var(--font-headline)' }}
+          >
+            LLM REASONING
+          </p>
+          <p className="text-[14px] leading-relaxed">{opp.reasoning}</p>
         </div>
       )}
 
       {/* Notes */}
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-xs text-gray-500 uppercase tracking-wider">Personal notes</p>
-          <span className="text-xs text-gray-600">
-            {saving ? 'Saving…' : saved ? '✓ Saved' : 'Auto-saved'}
+        <div className="flex items-center justify-between mb-sp-2">
+          <p
+            className="text-[10px] uppercase tracking-[1px]"
+            style={{ fontFamily: 'var(--font-headline)' }}
+          >
+            PERSONAL NOTES
+          </p>
+          <span className="text-[11px] uppercase tracking-[1px] text-rb-fg/60">
+            {saving ? 'SAVING…' : saved ? '✓ SAVED' : 'AUTO-SAVED'}
           </span>
         </div>
-        <textarea
+        <Textarea
           value={notes}
           onChange={e => handleNotes(e.target.value)}
           placeholder="Your thoughts, research links, decisions…"
           rows={5}
-          className="w-full rounded-xl border border-gray-700 bg-gray-900 p-4 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500 resize-y transition-colors"
         />
       </div>
 
-      <div className="flex items-center gap-4 text-sm border-t border-gray-800 pt-4">
-        <Link href="/opportunities" className="text-gray-500 hover:text-gray-300">
-          ← All opportunities
+      <div className="flex items-center gap-sp-4 text-[12px] uppercase tracking-[1px] border-t-[3px] border-rb-fg pt-sp-3 flex-wrap">
+        <Link href="/opportunities" className="inline-flex items-center gap-[6px] underline hover:text-rb-link">
+          <Icon path={mdiArrowLeft} size={14} /> All opportunities
         </Link>
-        <Link href={`/scan/${opp.scan}/report`} className="text-gray-500 hover:text-blue-400">
-          View scan report →
+        <Link href={`/scan/${opp.scan}/report`} className="inline-flex items-center gap-[6px] underline hover:text-rb-link">
+          View scan report <Icon path={mdiArrowRight} size={14} />
         </Link>
       </div>
     </div>

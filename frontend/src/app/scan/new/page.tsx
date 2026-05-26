@@ -2,33 +2,38 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { mdiRocketLaunchOutline, mdiReddit, mdiNewspaperVariantOutline, mdiTrendingUp, mdiCart } from '@mdi/js'
 import { api } from '@/lib/api'
+import Icon from '@/components/ui/Icon'
+import Checkbox from '@/components/ui/Checkbox'
+import Input from '@/components/ui/Input'
+import Button from '@/components/ui/Button'
 
 const ALL_SOURCES = [
-  { id: 'reddit',       label: 'Reddit',        desc: 'r/SaaS, r/entrepreneur, r/startups, r/nocode' },
-  { id: 'hackernews',   label: 'Hacker News',   desc: 'Ask HN, Show HN, top stories' },
-  { id: 'trends',       label: 'Google Trends', desc: 'Interest over time + rising queries' },
-  { id: 'producthunt',  label: 'Product Hunt',  desc: 'Competition & saturation data' },
+  { id: 'reddit',       label: 'REDDIT',        desc: 'r/SaaS, r/entrepreneur, r/startups, r/nocode', icon: mdiReddit },
+  { id: 'hackernews',   label: 'HACKER NEWS',   desc: 'Ask HN, Show HN, top stories',                 icon: mdiNewspaperVariantOutline },
+  { id: 'trends',       label: 'GOOGLE TRENDS', desc: 'Interest over time + rising queries',          icon: mdiTrendingUp },
+  { id: 'producthunt',  label: 'PRODUCT HUNT',  desc: 'Competition & saturation data',                icon: mdiCart },
 ]
 
 const DEFAULT_SUBREDDITS = ['SaaS', 'Entrepreneur', 'smallbusiness', 'freelance', 'webdev']
 
 export default function NewScanPage() {
   const router = useRouter()
-  const [sources, setSources]         = useState<string[]>(['reddit', 'hackernews', 'trends', 'producthunt'])
-  const [keywords, setKeywords]       = useState('')
-  const [subreddits, setSubreddits]   = useState<string[]>(DEFAULT_SUBREDDITS)
-  const [launching, setLaunching]     = useState(false)
-  const [error, setError]             = useState('')
+  const [sources, setSources]       = useState<string[]>(['reddit', 'hackernews', 'trends', 'producthunt'])
+  const [keywords, setKeywords]     = useState('')
+  const [subreddits, setSubreddits] = useState<string[]>(DEFAULT_SUBREDDITS)
+  const [launching, setLaunching]   = useState(false)
+  const [error, setError]           = useState('')
 
-  // Load default subreddits from saved config
   useEffect(() => {
     api.getConfigs().then(configs => {
       const def = configs.find(c => c.is_default)
       if (def?.config?.subreddits && Array.isArray(def.config.subreddits)) {
         setSubreddits(def.config.subreddits as string[])
       }
-    }).catch(() => { /* use hardcoded fallback silently */ })
+    }).catch(() => { /* fallback */ })
   }, [])
 
   function toggle(id: string) {
@@ -42,10 +47,7 @@ export default function NewScanPage() {
     setLaunching(true)
     setError('')
     try {
-      const config: Record<string, unknown> = {
-        sources,
-        subreddits,
-      }
+      const config: Record<string, unknown> = { sources, subreddits }
       if (keywords.trim()) {
         const kws = keywords.split(',').map(k => k.trim()).filter(Boolean)
         if (kws.length) {
@@ -62,96 +64,103 @@ export default function NewScanPage() {
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-1">New Scan</h1>
-      <p className="text-sm text-gray-400 mb-8">
-        Configure data sources and launch the collection pipeline.
-      </p>
+    <div className="p-sp-5 max-w-[760px] mx-auto">
+      <div className="border-b-[3px] border-rb-fg pb-sp-4 mb-sp-5">
+        <h1 className="text-[64px] leading-none">NEW SCAN</h1>
+        <p className="text-[14px] uppercase tracking-[1px] text-rb-fg/60 mt-[8px]">
+          Configure data sources and launch the collection pipeline.
+        </p>
+      </div>
 
       {/* Data Sources */}
-      <section className="mb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">
-          Data Sources
-        </h2>
-        <div className="space-y-2">
-          {ALL_SOURCES.map(src => (
-            <label
-              key={src.id}
-              className={`flex items-start gap-4 rounded-xl border px-5 py-4 cursor-pointer transition-colors ${
-                sources.includes(src.id)
-                  ? 'border-blue-600 bg-blue-950/30'
-                  : 'border-gray-800 bg-gray-900 hover:border-gray-600'
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={sources.includes(src.id)}
-                onChange={() => toggle(src.id)}
-                className="mt-0.5 accent-blue-500"
-              />
-              <div>
-                <p className="font-medium text-white text-sm">{src.label}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{src.desc}</p>
-              </div>
-            </label>
-          ))}
+      <section className="mb-sp-5">
+        <h3
+          className="text-[24px] uppercase mb-sp-3 leading-none"
+          style={{ fontFamily: 'var(--font-headline)' }}
+        >
+          DATA SOURCES
+        </h3>
+        <div className="space-y-[12px]">
+          {ALL_SOURCES.map(src => {
+            const active = sources.includes(src.id)
+            return (
+              <label
+                key={src.id}
+                className={
+                  `flex items-center gap-sp-3 border-[3px] border-rb-fg px-sp-3 py-sp-3 cursor-pointer ` +
+                  `${active ? 'bg-rb-fg text-rb-bg' : 'bg-rb-bg text-rb-fg hover:bg-rb-sunken'}`
+                }
+              >
+                <Checkbox checked={active} onChange={() => toggle(src.id)} />
+                <Icon path={src.icon} size={24} />
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="text-[16px] leading-none"
+                    style={{ fontFamily: 'var(--font-headline)' }}
+                  >
+                    {src.label}
+                  </p>
+                  <p className={`text-[12px] mt-[4px] ${active ? 'text-rb-bg/70' : 'text-rb-fg/60'}`}>
+                    {src.desc}
+                  </p>
+                </div>
+              </label>
+            )
+          })}
         </div>
       </section>
 
-      {/* Subreddits (shown only when Reddit is selected) */}
+      {/* Subreddits */}
       {sources.includes('reddit') && (
-        <section className="mb-8">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">
-            Subreddits
-          </h2>
-          <div className="flex flex-wrap gap-2 rounded-xl border border-gray-800 bg-gray-900 p-4">
+        <section className="mb-sp-5">
+          <h3
+            className="text-[24px] uppercase mb-sp-3 leading-none"
+            style={{ fontFamily: 'var(--font-headline)' }}
+          >
+            SUBREDDITS
+          </h3>
+          <div className="flex flex-wrap gap-[8px] border-[3px] border-rb-fg bg-rb-sunken p-sp-3">
             {subreddits.map(sr => (
               <span
                 key={sr}
-                className="inline-flex items-center gap-1 rounded-full border border-gray-700 bg-gray-800 px-3 py-1 text-xs text-gray-200"
+                className="inline-flex items-center bg-rb-bg border-[2px] border-rb-fg px-[10px] py-[4px] text-[12px] uppercase tracking-[1px] font-semibold"
               >
-                r/{sr}
+                R/{sr}
               </span>
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-2">
-            Defaults from{' '}
-            <a href="/settings" className="text-blue-400 hover:underline">Settings</a>.
-            {' '}You can customise them there.
+          <p className="text-[12px] mt-[8px] text-rb-fg/60">
+            Defaults from <Link href="/settings" className="text-rb-link underline">Settings</Link>. Customise them there.
           </p>
         </section>
       )}
 
       {/* Keywords */}
-      <section className="mb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">
-          Keywords <span className="normal-case font-normal text-gray-600">(optional)</span>
-        </h2>
-        <input
-          type="text"
+      <section className="mb-sp-5">
+        <Input
+          label="KEYWORDS (OPTIONAL)"
           value={keywords}
           onChange={e => setKeywords(e.target.value)}
           placeholder="saas, automation, no-code, workflow"
-          className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+          helper="Comma-separated. Applied to Google Trends and Product Hunt analysis."
         />
-        <p className="text-xs text-gray-500 mt-2">
-          Comma-separated. Applied to Google Trends and Product Hunt analysis.
-        </p>
       </section>
 
       {error && (
-        <p className="text-sm text-red-400 mb-4 rounded-lg border border-red-800 bg-red-950/40 px-4 py-3">
+        <div className="mb-sp-3 border-[3px] border-rb-error bg-rb-bg text-rb-error px-sp-3 py-sp-2 text-[14px]">
           {error}
-        </p>
+        </div>
       )}
 
-      <button
+      <Button
         onClick={launch}
         disabled={launching || !sources.length}
-        className="w-full rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold py-3 transition-colors"
+        size="lg"
+        className="w-full"
       >
-        {launching ? 'Launching…' : '🚀 Launch Scan'}
-      </button>
+        <Icon path={mdiRocketLaunchOutline} size={20} />
+        {launching ? 'LAUNCHING…' : 'LAUNCH SCAN'}
+      </Button>
     </div>
   )
 }

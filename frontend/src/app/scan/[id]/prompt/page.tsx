@@ -3,32 +3,35 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { mdiContentCopy, mdiCheckBold, mdiDownload, mdiOpenInNew, mdiArrowRight } from '@mdi/js'
 import { api } from '@/lib/api'
+import Icon from '@/components/ui/Icon'
+import Button from '@/components/ui/Button'
 import type { Scan } from '@/lib/types'
 
 const LLM_LINKS = [
-  { label: 'Claude', href: 'https://claude.ai' },
-  { label: 'ChatGPT', href: 'https://chatgpt.com' },
-  { label: 'Gemini', href: 'https://gemini.google.com' },
+  { label: 'CLAUDE',  href: 'https://claude.ai' },
+  { label: 'CHATGPT', href: 'https://chatgpt.com' },
+  { label: 'GEMINI',  href: 'https://gemini.google.com' },
 ]
 
 function tokenColor(tokens: number): string {
-  if (tokens < 8_000)   return 'bg-green-900 text-green-300'
-  if (tokens < 32_000)  return 'bg-yellow-900 text-yellow-300'
-  if (tokens < 100_000) return 'bg-orange-900 text-orange-300'
-  return 'bg-red-900 text-red-300'
+  if (tokens < 8_000)   return 'border-rb-success text-rb-success'
+  if (tokens < 32_000)  return 'border-rb-warning text-rb-warning'
+  if (tokens < 100_000) return 'border-rb-warning text-rb-warning'
+  return 'border-rb-error text-rb-error'
 }
 
 function tokenModel(tokens: number): string {
-  if (tokens < 8_000)   return 'Any modern LLM'
-  if (tokens < 32_000)  return 'Claude Sonnet / GPT-4 / Gemini Pro'
-  if (tokens < 100_000) return 'Claude (any) / Gemini 1.5+'
-  return '⚠ Exceeds 100K — use Claude or Gemini 1.5+'
+  if (tokens < 8_000)   return 'ANY MODERN LLM'
+  if (tokens < 32_000)  return 'CLAUDE SONNET / GPT-4 / GEMINI PRO'
+  if (tokens < 100_000) return 'CLAUDE (ANY) / GEMINI 1.5+'
+  return '⚠ EXCEEDS 100K — USE CLAUDE OR GEMINI 1.5+'
 }
 
 export default function PromptPage() {
   const { id } = useParams<{ id: string }>()
-  const [scan, setScan] = useState<Scan | null>(null)
+  const [scan, setScan]   = useState<Scan | null>(null)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
 
@@ -43,90 +46,111 @@ export default function PromptPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  if (error) return <div className="p-8 text-red-400">{error}</div>
-  if (!scan)  return <div className="p-8 text-gray-400 animate-pulse">Loading…</div>
+  if (error) return <div className="p-sp-5 text-rb-error">{error}</div>
+  if (!scan)  return <div className="p-sp-5 uppercase tracking-[1px]">Loading…</div>
 
   const prompt = scan.prompt_text ?? ''
   const tokens = scan.prompt_tokens_est ?? 0
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/" className="hover:text-gray-300">Dashboard</Link>
+    <div className="p-sp-5 max-w-[1000px] mx-auto space-y-sp-4">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-[8px] text-[12px] uppercase tracking-[1px]">
+        <Link href="/" className="underline hover:text-rb-link">Dashboard</Link>
         <span>/</span>
-        <Link href={`/scan/${id}`} className="hover:text-gray-300 font-mono">{id}</Link>
+        <Link href={`/scan/${id}`} className="underline hover:text-rb-link" style={{ fontFamily: 'var(--font-mono)' }}>{id}</Link>
         <span>/</span>
-        <span className="text-gray-300">Prompt</span>
+        <span>Prompt</span>
       </div>
 
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      {/* Header */}
+      <div className="flex items-end justify-between gap-sp-3 flex-wrap pb-sp-3 border-b-[3px] border-rb-fg">
         <div>
-          <h1 className="text-2xl font-bold text-white">Your Prompt</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Copy this and paste it into your LLM, then come back with the response.
+          <h1 className="text-[48px] leading-none">YOUR PROMPT</h1>
+          <p className="text-[14px] uppercase tracking-[1px] text-rb-fg/60 mt-[8px]">
+            Copy this, paste into your LLM, then come back with the response.
           </p>
         </div>
         {tokens > 0 && (
-          <div className={`rounded-full px-3 py-1 text-xs font-semibold tabular-nums shrink-0 ${tokenColor(tokens)}`}>
-            ~{tokens.toLocaleString()} tokens
+          <div
+            className={`bg-rb-bg border-[3px] ${tokenColor(tokens)} px-[14px] py-[6px] text-[16px] font-bold tabular-nums shrink-0`}
+            style={{ fontFamily: 'var(--font-mono)' }}
+          >
+            ~{tokens.toLocaleString()} TOKENS
           </div>
         )}
       </div>
 
       {/* Steps */}
-      <div className="flex gap-4 text-sm text-gray-400">
-        {['1. Copy the prompt below', '2. Paste into your LLM', '3. Return here with the response'].map((s, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <span className="w-5 h-5 rounded-full bg-gray-800 text-gray-300 flex items-center justify-center text-xs font-bold shrink-0">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-sp-3">
+        {[
+          'COPY THE PROMPT BELOW',
+          'PASTE INTO YOUR LLM',
+          'RETURN HERE WITH THE RESPONSE',
+        ].map((step, i) => (
+          <div key={i} className="border-[3px] border-rb-fg p-sp-3 flex items-start gap-sp-2">
+            <span
+              className="w-[36px] h-[36px] border-[3px] border-rb-fg bg-rb-fg text-rb-bg flex items-center justify-center text-[16px] font-bold shrink-0"
+              style={{ fontFamily: 'var(--font-mono)' }}
+            >
               {i + 1}
             </span>
-            {s.slice(3)}
+            <span
+              className="text-[14px] uppercase tracking-[1px] leading-tight pt-[4px]"
+              style={{ fontFamily: 'var(--font-headline)' }}
+            >
+              {step}
+            </span>
           </div>
         ))}
       </div>
 
       {/* Quick LLM links */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-sp-2 flex-wrap">
         {LLM_LINKS.map(l => (
           <a
             key={l.label}
             href={l.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg border border-gray-700 bg-gray-900 hover:border-gray-500 px-4 py-2 text-sm text-gray-300 transition-colors"
+            className="inline-flex items-center gap-[6px] bg-rb-bg text-rb-fg border-[3px] border-rb-fg px-sp-3 py-[8px] uppercase text-[12px] tracking-[2px] font-semibold hover:bg-rb-fg hover:text-rb-bg"
           >
-            Open {l.label} ↗
+            OPEN {l.label} <Icon path={mdiOpenInNew} size={14} />
           </a>
         ))}
       </div>
 
       {/* Prompt block */}
       {!prompt ? (
-        <div className="rounded-xl border border-yellow-800 bg-yellow-950/40 p-6 text-yellow-400">
+        <div className="border-[3px] border-rb-warning bg-rb-bg p-sp-4 text-rb-fg">
           Prompt not ready yet. Make sure the pipeline completed.
         </div>
       ) : (
-        <div className="relative group">
-          <pre className="rounded-xl border border-gray-700 bg-gray-900 p-5 text-xs text-gray-300 overflow-auto max-h-[60vh] whitespace-pre-wrap break-words leading-relaxed font-mono">
+        <div className="relative">
+          <pre
+            className="bg-rb-sunken border-[3px] border-rb-fg p-sp-4 text-[13px] text-rb-fg overflow-auto max-h-[60vh] whitespace-pre-wrap break-words leading-relaxed"
+            style={{ fontFamily: 'var(--font-mono)' }}
+          >
             {prompt}
           </pre>
-          <div className="absolute top-3 right-3 flex gap-2">
+          <div className="absolute top-sp-2 right-sp-2 flex gap-[8px]">
             <button
               onClick={copy}
-              className={`rounded-lg px-4 py-2 text-xs font-medium transition-all ${
-                copied
-                  ? 'bg-green-700 text-green-200'
-                  : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-              }`}
+              className={
+                `inline-flex items-center gap-[6px] border-[3px] border-rb-fg px-[14px] py-[6px] uppercase text-[12px] tracking-[2px] font-semibold ` +
+                `${copied ? 'bg-rb-success text-white' : 'bg-rb-bg text-rb-fg hover:bg-rb-fg hover:text-rb-bg'}`
+              }
             >
-              {copied ? '✓ Copied!' : 'Copy'}
+              <Icon path={copied ? mdiCheckBold : mdiContentCopy} size={14} />
+              {copied ? 'COPIED' : 'COPY'}
             </button>
             <a
               href={`/api/scans/${id}/export/prompt.txt`}
               download
-              className="rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-medium px-4 py-2 transition-colors"
+              className="inline-flex items-center gap-[6px] bg-rb-bg text-rb-fg border-[3px] border-rb-fg px-[14px] py-[6px] uppercase text-[12px] tracking-[2px] font-semibold hover:bg-rb-fg hover:text-rb-bg"
             >
-              ↓ .txt
+              <Icon path={mdiDownload} size={14} />
+              .TXT
             </a>
           </div>
         </div>
@@ -134,18 +158,21 @@ export default function PromptPage() {
 
       {/* Recommended model */}
       {tokens > 0 && (
-        <p className="text-sm text-gray-500">
-          Recommended: <span className="text-gray-300">{tokenModel(tokens)}</span>
+        <p className="text-[12px] uppercase tracking-[1px]">
+          RECOMMENDED:{' '}
+          <span className="font-bold" style={{ fontFamily: 'var(--font-mono)' }}>
+            {tokenModel(tokens)}
+          </span>
         </p>
       )}
 
       {/* Next step */}
-      <div className="flex justify-end pt-2">
-        <Link
-          href={`/scan/${id}/response`}
-          className="rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium px-6 py-3 text-sm transition-colors"
-        >
-          I have the response → Paste it
+      <div className="flex justify-end pt-sp-2">
+        <Link href={`/scan/${id}/response`}>
+          <Button size="lg">
+            I HAVE THE RESPONSE → PASTE IT
+            <Icon path={mdiArrowRight} size={18} />
+          </Button>
         </Link>
       </div>
     </div>
