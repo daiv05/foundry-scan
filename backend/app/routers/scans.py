@@ -7,6 +7,7 @@ from app.db import pb
 from app.models.schemas import (
     LLMResponseInput,
     OpportunityResponse,
+    ScanArchive,
     ScanCreate,
     ScanResponse,
     ScanStatus,
@@ -28,8 +29,15 @@ async def create_scan(body: ScanCreate, background_tasks: BackgroundTasks):
 
 
 @router.get("", response_model=list[ScanResponse])
-async def list_scans(page: int = 1, per_page: int = 50, sort: str = "-created"):
-    result = await pb.get_list("scans", page=page, per_page=per_page, sort=sort)
+async def list_scans(
+    page: int = 1,
+    per_page: int = 50,
+    sort: str = "-created",
+    archived: bool = False,
+):
+    # archived=false --> non-archived only; archived=true --> archived only
+    filter_str = "archived=true" if archived else "archived!=true"
+    result = await pb.get_list("scans", page=page, per_page=per_page, sort=sort, filter=filter_str)
     return [ScanResponse(**r) for r in result.get("items", [])]
 
 
@@ -64,6 +72,16 @@ async def delete_scan(scan_id: str):
     return Response(status_code=204)
 
 
+@router.patch("/{scan_id}", response_model=ScanResponse)
+async def patch_scan(scan_id: str, body: ScanArchive):
+    """Update the archived flag on a scan."""
+    try:
+        record = await pb.update("scans", scan_id, {"archived": body.archived})
+    except Exception:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    return ScanResponse(**record)
+
+
 # ── Prompt & LLM response ────────────────────────────────────────────────────
 
 @router.get("/{scan_id}/prompt", response_class=PlainTextResponse)
@@ -75,7 +93,7 @@ async def get_prompt(scan_id: str):
         raise HTTPException(status_code=404, detail="Scan not found")
     prompt = record.get("prompt_text") or ""
     if not prompt:
-        raise HTTPException(status_code=425, detail="Prompt not ready yet — run the scan pipeline first")
+        raise HTTPException(status_code=425, detail="Prompt not ready yet - run the scan pipeline first")
     return PlainTextResponse(content=prompt)
 
 
@@ -96,7 +114,7 @@ async def submit_response(scan_id: str, body: LLMResponseInput):
     if record.get("status") not in ("awaiting_llm_input", "parsing"):
         raise HTTPException(
             status_code=409,
-            detail=f"Scan is in status '{record.get('status')}' — expected 'awaiting_llm_input'.",
+            detail=f"Scan is in status '{record.get('status')}' - expected 'awaiting_llm_input'.",
         )
 
     # 2. Persist raw response + metadata
@@ -143,7 +161,7 @@ async def retry_parse(scan_id: str):
 
     raw = record.get("llm_response_raw") or ""
     if not raw:
-        raise HTTPException(status_code=409, detail="No stored response to retry — submit one first.")
+        raise HTTPException(status_code=409, detail="No stored response to retry - submit one first.")
 
     try:
         result = await parse_response(scan_id, raw, clean_existing=True)
@@ -222,16 +240,16 @@ def _build_markdown(scan: dict, opps: list) -> str:
         date_str = completed
 
     lines: list[str] = [
-        f"# AlcSaaS Report — {date_str}",
+        f"# FoundryScan Report - {date_str}",
         "",
         "## Scan Metadata",
         "",
         f"| Field | Value |",
         f"|---|---|",
         f"| Scan ID | `{scan['id']}` |",
-        f"| Status | {scan.get('status', '—')} |",
-        f"| LLM used | {scan.get('llm_used') or '—'} |",
-        f"| Prompt tokens | {scan.get('prompt_tokens_est') or '—'} |",
+        f"| Status | {scan.get('status', '-')} |",
+        f"| LLM used | {scan.get('llm_used') or '-'} |",
+        f"| Prompt tokens | {scan.get('prompt_tokens_est') or '-'} |",
         f"| Opportunities | {len(opps)} |",
         "",
         "## Opportunities Summary",
@@ -241,10 +259,10 @@ def _build_markdown(scan: dict, opps: list) -> str:
     ]
 
     for opp in opps:
-        rank  = opp.get("rank", "—")
-        score = f"{opp.get('score', 0):.1f}" if opp.get("score") else "—"
-        name  = (opp.get("name") or "—").replace("|", "\\|")
-        prob  = (opp.get("problem") or "—")[:80].replace("|", "\\|")
+        rank  = opp.get("rank", "-")
+        score = f"{opp.get('score', 0):.1f}" if opp.get("score") else "-"
+        name  = (opp.get("name") or "-").replace("|", "\\|")
+        prob  = (opp.get("problem") or "-")[:80].replace("|", "\\|")
         lines.append(f"| {rank} | {score} | {name} | {prob} |")
 
     lines.append("")
@@ -254,11 +272,11 @@ def _build_markdown(scan: dict, opps: list) -> str:
         score = opp.get("score")
         scoring = opp.get("scoring") or {}
         lines += [
-            f"## #{opp.get('rank', '?')} — {name}",
+            f"## #{opp.get('rank', '?')} - {name}",
             "",
-            f"**Score:** {f'{score:.2f}' if score else '—'}",
+            f"**Score:** {f'{score:.2f}' if score else '-'}",
             "",
-            f"**Problem:** {opp.get('problem') or '—'}",
+            f"**Problem:** {opp.get('problem') or '-'}",
             "",
         ]
 
@@ -273,10 +291,10 @@ def _build_markdown(scan: dict, opps: list) -> str:
                 "",
                 "| Criterion | Score | Weight |",
                 "|---|---|---|",
-                f"| Pain intensity   | {scoring.get('pain_intensity', '—')} | 30% |",
-                f"| Trend momentum   | {scoring.get('trend_momentum', '—')} | 20% |",
-                f"| Competition gap  | {scoring.get('competition_gap', '—')} | 25% |",
-                f"| MVP feasibility  | {scoring.get('mvp_feasibility', '—')} | 25% |",
+                f"| Pain intensity   | {scoring.get('pain_intensity', '-')} | 30% |",
+                f"| Trend momentum   | {scoring.get('trend_momentum', '-')} | 20% |",
+                f"| Competition gap  | {scoring.get('competition_gap', '-')} | 25% |",
+                f"| MVP feasibility  | {scoring.get('mvp_feasibility', '-')} | 25% |",
                 "",
             ]
 
@@ -301,7 +319,7 @@ def _build_markdown(scan: dict, opps: list) -> str:
         lines.append("")
 
     lines += [
-        "_Generated by AlcSaaS_",
+        "_Generated by FoundryScan_",
     ]
     return "\n".join(lines)
 

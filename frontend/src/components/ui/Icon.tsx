@@ -1,5 +1,5 @@
 /**
- * RawBlock Icon — wraps @mdi/js path data into a 24×24 SVG.
+ * RawBlock Icon - wraps @mdi/js path data into a 24×24 SVG.
  * Always renders in the current text color (the "principal color").
  *
  * Usage:

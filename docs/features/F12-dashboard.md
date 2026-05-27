@@ -1,42 +1,42 @@
-# F12 — Dashboard
+# F12 - Dashboard
 
-## Objetivo
+## Objective
 
-Pagina principal que muestra un resumen rapido: scans recientes, top oportunidades, y acceso a nuevo scan.
+Homepage displaying a quick summary: recent scans, top opportunities, and access to a new scan.
 
-## Alcance
+## Scope
 
-### Contenido
+### Content
 
-- **Scans recientes:** lista con status, fecha, numero de oportunidades encontradas
-- **Top oportunidades:** las mejores oportunidades recientes (por score)
-- **Boton "New Scan"** que lleva a `/scan/new`
-- **Notificacion persistente** si hay un scan en estado `awaiting_llm_input`: "Tu scan semanal esta listo. Pegalo en tu LLM para continuar."
+- **Recent Scans:** list with status, date, and number of opportunities found
+- **Top Opportunities:** the best recent opportunities (by score)
+- **"New Scan"" Button:** which leads to `/scan/new`
+- **Persistent Notification:** if a scan is in `awaiting_llm_input` status: "Your weekly scan is ready. Paste it into your LLM to continue."
 
-### Datos
+### Data
 
-- `GET /api/scans` (recientes)
-- `GET /api/opportunities` (top por score)
+- `GET /api/scans` (recent scans)
+- `GET /api/opportunities` (top opportunities by score)
 
-### Componentes
+### Components
 
-- Lista de scans con status badge
-- OpportunityCard (nombre, score con badge de color, problema resumido)
-- Notificacion de scans pendientes
+- List of scans with status badge
+- OpportunityCard (name, score with color badge, problem summary)
+- Notification of pending scans
 
-## Criterios de aceptacion
+## Acceptance Criteria
 
-- [x] Muestra scans recientes con status
-- [x] Muestra top oportunidades con score
-- [x] Boton a nuevo scan
-- [x] Notificacion visible si hay scan en `awaiting_llm_input`
-- [x] Estado vacio (primer uso) con CTA claro
+- [x] Shows recent scans with status
+- [x] Shows top opportunities with score
+- [x] Button to new scan
+- [x] Notification visible if there is a scan in `awaiting_llm_input`
+- [x] Empty state (first use) with clear CTA
 
-## Dependencias
+## Dependencies
 
-- F11 (shell y routing)
-- F03 (endpoints de scans y opportunities)
+- F11 (shell and routing)
+- F03 (endpoints for scans and opportunities)
 
 ## Ref SPEC
 
-Seccion 8.1 (ruta `/`), seccion 10 (notificacion)
+Section 8.1 (route `/`), section 10 (notification)

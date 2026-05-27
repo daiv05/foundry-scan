@@ -1,14 +1,14 @@
 """
-F09 — Prompt Builder
+F09 - Prompt Builder
 
 Builds a self-contained prompt from F08 clusters + trends/PH metadata.
 The prompt is ready to paste into any external LLM.
 
 Sections:
-  1. CONTEXT     — analyst role and task framing
-  2. DATA        — clusters, trend signals, competition data
-  3. INSTRUCTIONS — scoring criteria, filters, output expectations
-  4. RESPONSE FORMAT — strict JSON schema
+  1. CONTEXT     - analyst role and task framing
+  2. DATA        - clusters, trend signals, competition data
+  3. INSTRUCTIONS - scoring criteria, filters, output expectations
+  4. RESPONSE FORMAT - strict JSON schema
 
 Output is persisted to scan.prompt_text + scan.prompt_tokens_est.
 """
@@ -38,7 +38,7 @@ Your task is to identify VALIDATED business opportunities from real user discuss
 Focus on specific, niche pain points where a small indie dev / small team could build a profitable SaaS product.
 
 Key principles:
-- Evidence must come from the data provided below — no hallucinations.
+- Evidence must come from the data provided below - no hallucinations.
 - Prefer underserved niches with clear willingness to pay.
 - Avoid oversaturated markets unless there is a clear differentiator in the data.
 """
@@ -89,7 +89,7 @@ def _section_trends(trends: dict) -> str:
     lines.append(f"Period    : {timeframe} | Geo: {geo} | Via: {via}")
     lines.append("")
 
-    # Interest over time — show average value per keyword
+    # Interest over time - show average value per keyword
     iot = trends.get("interest_over_time", {})
     if iot:
         lines.append("Average search interest (0-100):")
@@ -140,7 +140,7 @@ def _section_competition(ph: dict) -> str:
         avg_v = n.get("avg_votes", 0.0)
         r6m   = n.get("recent_6m", 0)
         if total == 0:
-            lines.append(f"  {kw:<20} — no data (topic slug may not match PH taxonomy)")
+            lines.append(f"  {kw:<20} - no data (topic slug may not match PH taxonomy)")
             continue
         lines.append(
             f"  {kw:<20} total={total:>6}  recent_6m={r6m:>4}  "
@@ -160,22 +160,22 @@ def _section_instructions() -> str:
 Analyse ALL clusters above and identify the top micro-SaaS opportunities.
 
 For each opportunity:
-1. Name         — concise product name
-2. Problem      — the specific pain point (one sentence)
-3. Evidence     — quantified evidence from the data (signal counts, post counts, quotes)
-4. Scoring      — rate 1–10 on each criterion:
-     pain_intensity   (weight 30 %) — how acute and frequent is the pain?
-     trend_momentum   (weight 20 %) — is search interest / discussion growing?
-     competition_gap  (weight 25 %) — how underserved is the niche? (low saturation = high score)
-     mvp_feasibility  (weight 25 %) — can a solo dev ship in < 6 months?
-5. Score        — weighted total: pain*0.30 + trend*0.20 + competition*0.25 + mvp*0.25
-6. Target user  — who exactly has this problem?
-7. MVP features — 3–5 core features for a shippable v1
-8. Monetization — pricing model and realistic price point
-9. Build time   — estimated time to a sellable MVP (e.g. "6–10 weeks")
-10. Reasoning   — 2–3 sentences explaining WHY this is a good opportunity
+1. Name         - concise product name
+2. Problem      - the specific pain point (one sentence)
+3. Evidence     - quantified evidence from the data (signal counts, post counts, quotes)
+4. Scoring      - rate 1–10 on each criterion:
+     pain_intensity   (weight 30 %) - how acute and frequent is the pain?
+     trend_momentum   (weight 20 %) - is search interest / discussion growing?
+     competition_gap  (weight 25 %) - how underserved is the niche? (low saturation = high score)
+     mvp_feasibility  (weight 25 %) - can a solo dev ship in < 6 months?
+5. Score        - weighted total: pain*0.30 + trend*0.20 + competition*0.25 + mvp*0.25
+6. Target user  - who exactly has this problem?
+7. MVP features - 3–5 core features for a shippable v1
+8. Monetization - pricing model and realistic price point
+9. Build time   - estimated time to a sellable MVP (e.g. "6–10 weeks")
+10. Reasoning   - 2–3 sentences explaining WHY this is a good opportunity
 
-MANDATORY FILTERS — discard any idea that matches:
+MANDATORY FILTERS - discard any idea that matches:
   ✗ Generic AI chatbot / general-purpose AI assistant
   ✗ AI wrapper with no proprietary workflow or data moat
   ✗ AI note-taking app (extremely saturated)
@@ -189,7 +189,7 @@ Return between 3 and 8 opportunities, sorted by score descending.
 
 _RESPONSE_SCHEMA = """\
 === RESPONSE FORMAT ===
-Return ONLY valid JSON — no markdown, no prose, no code fences.
+Return ONLY valid JSON - no markdown, no prose, no code fences.
 Use exactly this schema:
 
 {
@@ -232,7 +232,7 @@ def _model_recommendation(tokens: int) -> str:
         return "Claude Sonnet/Opus, GPT-4, Gemini Pro"
     if tokens <= 100_000:
         return "Claude (any), Gemini 1.5+"
-    return "Claude (any), Gemini 1.5+ — WARNING: prompt exceeds 100K tokens"
+    return "Claude (any), Gemini 1.5+ - WARNING: prompt exceeds 100K tokens"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -245,7 +245,7 @@ async def build_prompt(scan_id: str, processed: dict[str, Any]) -> tuple[str, in
 
     Args:
         scan_id:   scan record id (used to persist prompt_text + prompt_tokens_est)
-        processed: dict returned by processor.process() — has 'clusters' and 'metadata'
+        processed: dict returned by processor.process() - has 'clusters' and 'metadata'
 
     Returns:
         (prompt_text, token_estimate)
@@ -276,7 +276,7 @@ async def build_prompt(scan_id: str, processed: dict[str, Any]) -> tuple[str, in
 
     if tokens > TOKENS_WARN_THRESHOLD:
         logger.warning(
-            "[prompt_builder] Prompt exceeds 100K tokens (%d) for scan=%s — "
+            "[prompt_builder] Prompt exceeds 100K tokens (%d) for scan=%s - "
             "consider compressed mode.", tokens, scan_id,
         )
     else:

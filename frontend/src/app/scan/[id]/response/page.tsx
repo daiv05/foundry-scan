@@ -11,13 +11,14 @@ import { Textarea, Select } from '@/components/ui/Input'
 import type { ParseError } from '@/lib/types'
 
 const LLM_OPTIONS = [
-  'Claude Opus 4',
-  'Claude Sonnet 4',
-  'Claude Haiku 3.5',
-  'GPT-4o',
-  'GPT-4 Turbo',
-  'Gemini 1.5 Pro',
-  'Gemini 2.0 Flash',
+  'GPT',
+  'Claude',
+  'Gemini',
+  'DeepSeek',
+  'Grok',
+  'Llama',
+  'Mistral',
+  'Kimi',
   'Other',
 ]
 
@@ -92,9 +93,9 @@ export default function ResponsePasterPage() {
 
       {/* Header */}
       <div className="pb-sp-3 border-b-[3px] border-rb-fg">
-        <h1 className="text-[48px] leading-none">PASTE LLM RESPONSE</h1>
+        <h1 className="text-[30px] md:text-[48px] leading-none">PASTE LLM RESPONSE</h1>
         <p className="text-[14px] uppercase tracking-[1px] text-rb-fg/60 mt-[8px]">
-          Paste the full response — markdown, code fences, extra text all fine.
+          Paste the full response - markdown, code fences, extra text all fine.
         </p>
       </div>
 
@@ -104,7 +105,7 @@ export default function ResponsePasterPage() {
         value={llmUsed}
         onChange={e => setLlmUsed(e.target.value)}
       >
-        <option value="">— select —</option>
+        <option value="">- select -</option>
         {LLM_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
       </Select>
 
@@ -168,7 +169,7 @@ export default function ResponsePasterPage() {
             onClick={() => setEditMode(true)}
             className="text-[12px] underline text-rb-link uppercase tracking-[1px]"
           >
-            Edit response manually →
+            Edit response manually -->
           </button>
         </div>
       )}

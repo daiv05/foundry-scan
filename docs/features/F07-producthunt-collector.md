@@ -1,47 +1,47 @@
-# F07 — Product Hunt Collector
+# F07 - Product Hunt Collector
 
-## Objetivo
+## Objective
 
-Recolectar datos de Product Hunt para evaluar competencia y saturacion de nichos.
+Collect Product Hunt data to evaluate competition and niche saturation.
 
-## Alcance
+## Scope
 
 ### API
 
-GraphQL con OAuth. Token en env var `PRODUCTHUNT_TOKEN`.
+GraphQL with OAuth. Token in environment variable `PRODUCTHUNT_TOKEN`.
 
-### Rol
+### Role
 
-**Exclusivamente** filtro de competencia y saturacion. No se usa para descubrir oportunidades, sino para validar si un nicho ya esta saturado de productos existentes.
+**Exclusively** competition and saturation filter. Not used to discover opportunities, but to validate whether a niche is already saturated with existing products.
 
 ### Output
 
-Datos de productos existentes por categoria/nicho que alimentan el scoring de `low_competition` en el Processor.
+Data on existing products by category/niche that feeds the `low_competition` scoring in the Processor.
 
-### Manejo de errores
+### Error Handling
 
-| Escenario             | Accion                                           |
-| --------------------- | ------------------------------------------------ |
-| Product Hunt API caida | Omitir competencia, marcar como "sin datos"     |
+| Scenario | Action |
+--------------------- | ------------------------------------------------ |
+Product Hunt API down | Ignore competition, mark as "no data" |
 
-### Almacenamiento
+## Storage
 
-Resultado en `raw_data` con `source = "producthunt"`.
+Result in `raw_data` with `source = "producthunt"`.
 
-## Criterios de aceptacion
+## Acceptance Criteria
 
-- [x] Conecta a Product Hunt GraphQL API
-- [x] Busca productos existentes por nicho/categoria
-- [x] Genera datos de competencia/saturacion
-- [x] Guarda en `raw_data`
-- [x] Manejo graceful si la API falla (omite fuente si `PRODUCTHUNT_TOKEN` ausente o API falla)
-- [x] Funciona como tarea asincrona
+- [x] Connects to the Product Hunt GraphQL API
+- [x] Searches for existing products by niche/category
+- [x] Generates competition/saturation data
+- [x] Saves to `raw_data`
+- [x] Handles gracefully if the API fails (omits source if `PRODUCTHUNT_TOKEN` is missing or the API fails)
+- [x] Works as an asynchronous task
 
-## Dependencias
+## Dependencies
 
 - F03 (backend core)
 - F02 (collection raw_data)
 
 ## Ref SPEC
 
-Seccion 5.1.4
+Section 5.1.4

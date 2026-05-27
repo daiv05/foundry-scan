@@ -13,14 +13,18 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
     const body = await res.json().catch(() => ({}))
     throw new Error(body?.detail?.message ?? body?.detail ?? `${res.status} ${res.statusText}`)
   }
+  if (res.status === 204) return undefined as T
   return res.json() as Promise<T>
 }
 
 // ── Server-side helpers (call from Server Components) ─────────────────────────
 
-export async function ssrGetScans(): Promise<Scan[]> {
+export async function ssrGetScans(params?: { perPage?: number; archived?: boolean }): Promise<Scan[]> {
   const base = serverBase()
-  return apiFetch<Scan[]>(`${base}/api/scans?per_page=20`)
+  const qs = new URLSearchParams()
+  qs.set('per_page', String(params?.perPage ?? 20))
+  if (params?.archived !== undefined) qs.set('archived', String(params.archived))
+  return apiFetch<Scan[]>(`${base}/api/scans?${qs}`)
 }
 
 export async function ssrGetScan(id: string): Promise<Scan> {
@@ -49,8 +53,11 @@ export async function ssrGetOpportunity(id: string): Promise<Opportunity> {
 // ── Client-side helpers (call from Client Components via /api rewrite) ─────────
 
 export const api = {
-  async getScans(): Promise<Scan[]> {
-    return apiFetch<Scan[]>('/api/scans?per_page=20')
+  async getScans(params?: { archived?: boolean; perPage?: number }): Promise<Scan[]> {
+    const qs = new URLSearchParams()
+    qs.set('per_page', String(params?.perPage ?? 20))
+    if (params?.archived !== undefined) qs.set('archived', String(params.archived))
+    return apiFetch<Scan[]>(`/api/scans?${qs}`)
   },
 
   async getScan(id: string): Promise<Scan> {
@@ -63,6 +70,18 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ config }),
     })
+  },
+
+  async archiveScan(id: string, archived: boolean): Promise<Scan> {
+    return apiFetch<Scan>(`/api/scans/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ archived }),
+    })
+  },
+
+  async deleteScan(id: string): Promise<void> {
+    await apiFetch<void>(`/api/scans/${id}`, { method: 'DELETE' })
   },
 
   async submitResponse(scanId: string, responseText: string, llmUsed?: string) {
@@ -86,15 +105,19 @@ export const api = {
   async getOpportunities(params?: {
     scanId?: string
     perPage?: number
+    page?: number
     sort?: string
     userStatus?: string
+    minScore?: number
   }): Promise<Opportunity[]> {
     const qs = new URLSearchParams()
     qs.set('per_page', String(params?.perPage ?? 50))
+    qs.set('page', String(params?.page ?? 1))
     qs.set('sort', params?.sort ?? '-score')
     const filters: string[] = []
     if (params?.scanId) filters.push(`scan="${params.scanId}"`)
     if (params?.userStatus) filters.push(`user_status="${params.userStatus}"`)
+    if (params?.minScore && params.minScore > 0) filters.push(`score>=${params.minScore}`)
     if (filters.length) qs.set('filter', filters.join('&&'))
     return apiFetch<Opportunity[]>(`/api/opportunities?${qs}`)
   },

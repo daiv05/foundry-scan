@@ -1,5 +1,5 @@
 /**
- * ScoreBadge — RawBlock style. Square, 3px border, color per range (semaphore).
+ * ScoreBadge - RawBlock style. Square, 3px border, color per range (semaphore).
  * Green ≥8, Orange ≥5, Red <5. Background is theme-aware.
  */
 

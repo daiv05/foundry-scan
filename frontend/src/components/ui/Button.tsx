@@ -1,5 +1,5 @@
 /**
- * RawBlock Button — square, 3px border, uppercase tracking, theme-aware.
+ * RawBlock Button - square, 3px border, uppercase tracking, theme-aware.
  * Variants: primary | secondary | ghost | destructive
  * Sizes: sm | md | lg
  *

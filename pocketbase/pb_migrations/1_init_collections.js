@@ -123,7 +123,7 @@ migrate((app) => {
     app.save(scanConfigs);
 
 }, (app) => {
-    // down — delete in reverse dependency order
+    // down - delete in reverse dependency order
     for (const name of ["scan_configs", "raw_data", "opportunities", "scans"]) {
         try {
             const c = app.findCollectionByNameOrId(name);

@@ -1,8 +1,8 @@
 """
-Trends Collector — F06
+Trends Collector - F06
 
 Primary:  PyTrends (unofficial Google Trends Python client, no credentials).
-Fallback: Playwright → scrapes trends.google.com/trending (weekly trending
+Fallback: Playwright --> scrapes trends.google.com/trending (weekly trending
           topics). No SerpAPI required.
 
 Output per collection:
@@ -55,7 +55,7 @@ def _pytrends_sync(
     Returns a dict with interest_over_time and related_queries.
     Raises on any error so the caller can trigger fallback.
     """
-    from pytrends.request import TrendReq  # lazy import — optional heavy dep
+    from pytrends.request import TrendReq  # lazy import - optional heavy dep
 
     pt = TrendReq(hl="en-US", tz=0, timeout=(10, 25), retries=2, backoff_factor=0.5)
     # PyTrends max 5 keywords per payload
@@ -99,10 +99,10 @@ async def _try_pytrends(
     """Run PyTrends in a thread. Returns None on any failure."""
     try:
         result = await asyncio.to_thread(_pytrends_sync, keywords, timeframe, geo)
-        logger.info("[trends] PyTrends OK — %d keywords", len(keywords))
+        logger.info("[trends] PyTrends OK - %d keywords", len(keywords))
         return result
     except Exception as exc:
-        logger.warning("[trends] PyTrends failed: %s — will try Playwright fallback", exc)
+        logger.warning("[trends] PyTrends failed: %s - will try Playwright fallback", exc)
         return None
 
 
@@ -143,7 +143,7 @@ async def _try_playwright(geo: str) -> list[dict[str, Any]]:
             await page.wait_for_timeout(3000)
 
             # Each trending row: title in a link/span, traffic volume nearby
-            # Google Trends trending page uses Angular/React — try multiple selectors
+            # Google Trends trending page uses Angular/React - try multiple selectors
             rows = await page.query_selector_all(
                 "tr.feed-item, div[jsname] table tr, .trending-story-title"
             )

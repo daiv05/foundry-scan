@@ -1,62 +1,63 @@
-# F14 — Opportunities Management UI
+# F14 - Opportunities Management UI
 
-## Objetivo
+## Objective
 
-Interfaz para explorar, filtrar, evaluar y anotar oportunidades descubiertas.
+Interface for exploring, filtering, evaluating, and annotating discovered opportunities.
 
-## Alcance
+## Scope
 
-### Pagina: /opportunities — Listado
+### Page: /opportunities - Listing
 
-- Lista de todas las oportunidades de todos los scans
-- Filtros por: `user_status` (new, evaluating, discarded, building, archived), score range
-- Ordenamiento por score (default DESC)
-- OpportunityCard por cada item
+- List of all opportunities from all scans
+- Filters by: `user_status` (new, evaluating, discarded, building, archived), score range
+- Sort by score (default DESC)
+- OpportunityCard for each item
 
-### Pagina: /opportunities/[id] — Detalle
+### Page: /opportunities/[id] - Details
 
-- Nombre y score prominente
-- ScoreBar: 4 barras horizontales (pain, trend, competencia, MVP) + total
-  - Verde 8+, amarillo 5-7, rojo <5
-- Problema descrito
-- Evidencia con tags
-- TrendBadge: flecha arriba / horizontal / abajo
-- CompetitionMeter: semaforo de saturacion (verde/amarillo/rojo)
+- Name and prominent score
+- ScoreBar: 4 horizontal bars (pain, trend, competition, MVP) + total
+
+- Green 8+, yellow 5-7, red <5
+- Problem described
+- Evidence with tags
+- TrendBadge: up / horizontal / down arrow
+- CompetitionMeter: saturation indicator (green/yellow/red)
 - Target user
 - MVP features
-- Monetizacion
+- Monetization
 - Build time estimate
-- Razonamiento del LLM
+- LLM's reasoning
 
-### Estado y notas
+### Status and Notes
 
-- Botones para cambiar `user_status`: new → evaluating → building (o discarded/archived)
-- `PATCH /api/opportunities/{id}` con nuevo status
-- **NotesPanel:** campo de texto libre para notas personales (lo que pienso, decisiones, links a investigacion). Guardado automatico.
+- Buttons to change `user_status`: new --> Evaluating --> Building (or discarded/archived)
+- `PATCH /api/opportunities/{id}` with new status
+- **NotesPanel:** Free text field for personal notes (my thoughts, decisions, links to research). Automatic saving.
 
-### Componentes clave
+### Key Components
 
-- **OpportunityCard** — nombre, score badge de color, problema, tags de evidencia, boton de estado
-- **ScoreBar** — 4 barras + total con colores
-- **TrendBadge** — flecha arriba/horizontal/abajo
-- **CompetitionMeter** — semaforo
-- **NotesPanel** — textarea con autosave
+- **OpportunityCard** - name, color-coded score badge, issue, evidence tags, status button
+- **ScoreBar** - 4 bars + total with colors
+- **TrendBadge** - up/horizontal/down arrow
+- **CompetitionMeter** - traffic light indicator
+- **NotesPanel** - textarea with autosave
 
-## Criterios de aceptacion
+## Acceptance Criteria
 
-- [x] Lista todas las oportunidades con filtros y ordenamiento
-- [x] Detalle muestra toda la informacion del LLM
-- [x] ScoreBar con colores correctos
-- [x] Cambio de status funciona y persiste
-- [x] Notas personales se guardan automaticamente
-- [ ] TrendBadge y CompetitionMeter visualizan datos correctamente (pendiente — F16+)
+- [x] Lists all opportunities with filters and sorting options
+- [x] Details panel displays all LLM information
+- [x] ScoreBar with correct colors
+- [x] Status change works and persists
+- [x] Personal notes are automatically saved
+- [ ] TrendBadge and CompetitionMeter display data correctly (pending - F16+)
 
-## Dependencias
+## Dependencies
 
-- F11 (shell y routing)
-- F03 (endpoints de opportunities)
-- F10 (oportunidades parseadas en DB)
+- F11 (shell and routing)
+- F03 (opportunity endpoints)
+- F10 (opportunities parsed in DB)
 
 ## Ref SPEC
 
-Seccion 8.1 (rutas), 8.2 (componentes)
+Section 8.1 (routes), 8.2 (components)

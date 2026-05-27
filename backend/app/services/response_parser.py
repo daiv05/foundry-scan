@@ -1,15 +1,15 @@
 """
-F10 — Response Parser
+F10 - Response Parser
 
 Converts raw LLM text into validated, scored Opportunity records in PocketBase.
 
 Pipeline:
-  1. Extract   — pull JSON block from markdown fences or balanced braces
-  2. Repair    — trailing commas, single quotes, // comments
-  3. Validate  — Pydantic schema check
-  4. Clamp     — scores outside [1, 10] are clamped, warnings emitted
-  5. Recalculate — weighted score recomputed server-side (not trusted from LLM)
-  6. Persist   — insert into `opportunities`, update scan status + timestamps
+  1. Extract   - pull JSON block from markdown fences or balanced braces
+  2. Repair    - trailing commas, single quotes, // comments
+  3. Validate  - Pydantic schema check
+  4. Clamp     - scores outside [1, 10] are clamped, warnings emitted
+  5. Recalculate - weighted score recomputed server-side (not trusted from LLM)
+  6. Persist   - insert into `opportunities`, update scan status + timestamps
 """
 from __future__ import annotations
 
@@ -61,7 +61,7 @@ class _Scoring(BaseModel):
 
 class _Opportunity(BaseModel):
     rank:          int
-    score:         float                    # LLM value — will be replaced
+    score:         float                    # LLM value - will be replaced
     name:          str
     problem:       str
     evidence:      str | list[Any]
@@ -99,12 +99,12 @@ def _extract_json_block(text: str) -> str:
       3. First balanced { ... } block
     Returns the raw JSON string, or raises ParseError.
     """
-    # Strategy 1 & 2 — code fence
+    # Strategy 1 & 2 - code fence
     m = _FENCE_RE.search(text)
     if m:
         return m.group(1).strip()
 
-    # Strategy 3 — first balanced { } block
+    # Strategy 3 - first balanced { } block
     start = text.find("{")
     if start == -1:
         raise ParseError(
@@ -140,7 +140,7 @@ def _extract_json_block(text: str) -> str:
 
     raise ParseError(
         "no_json",
-        "Found `{` but braces are unbalanced — the JSON block appears truncated.",
+        "Found `{` but braces are unbalanced - the JSON block appears truncated.",
         hint="Ensure the full LLM response was pasted. The closing `}` may be missing.",
     )
 
@@ -326,7 +326,7 @@ async def parse_response(
         }
 
     Raises:
-        ParseError — with .kind, .message, .hint for actionable UI feedback
+        ParseError - with .kind, .message, .hint for actionable UI feedback
     """
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 

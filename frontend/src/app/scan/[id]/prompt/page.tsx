@@ -26,7 +26,7 @@ function tokenModel(tokens: number): string {
   if (tokens < 8_000)   return 'ANY MODERN LLM'
   if (tokens < 32_000)  return 'CLAUDE SONNET / GPT-4 / GEMINI PRO'
   if (tokens < 100_000) return 'CLAUDE (ANY) / GEMINI 1.5+'
-  return '⚠ EXCEEDS 100K — USE CLAUDE OR GEMINI 1.5+'
+  return '⚠ EXCEEDS 100K - USE CLAUDE OR GEMINI 1.5+'
 }
 
 export default function PromptPage() {
@@ -66,7 +66,7 @@ export default function PromptPage() {
       {/* Header */}
       <div className="flex items-end justify-between gap-sp-3 flex-wrap pb-sp-3 border-b-[3px] border-rb-fg">
         <div>
-          <h1 className="text-[48px] leading-none">YOUR PROMPT</h1>
+          <h1 className="text-[30px] md:text-[48px] leading-none">YOUR PROMPT</h1>
           <p className="text-[14px] uppercase tracking-[1px] text-rb-fg/60 mt-[8px]">
             Copy this, paste into your LLM, then come back with the response.
           </p>
@@ -170,7 +170,7 @@ export default function PromptPage() {
       <div className="flex justify-end pt-sp-2">
         <Link href={`/scan/${id}/response`}>
           <Button size="lg">
-            I HAVE THE RESPONSE → PASTE IT
+            I HAVE THE RESPONSE --> PASTE IT
             <Icon path={mdiArrowRight} size={18} />
           </Button>
         </Link>

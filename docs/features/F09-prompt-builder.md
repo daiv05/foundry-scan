@@ -1,72 +1,72 @@
-# F09 — Prompt Builder
+# F09 - Prompt Builder
 
-## Objetivo
+## Objective
 
-Construir un prompt completo y autocontenido listo para pegar en cualquier LLM externo.
+Build a complete, self-contained prompt ready to be pasted into any external LLM.
 
-## Alcance
+## Scope
 
 ### Input
 
-Clusters procesados del Processor (F08) + datos de validacion (trends, competencia).
+Processed clusters from the Processor (F08) + validation data (trends, competition).
 
-### Estructura del prompt generado
+### Structure of the Generated Prompt
 
 ```
-=== CONTEXTO ===
-Rol de analista de mercado micro-SaaS.
+=== CONTEXT ===
+Micro-SaaS market analyst role.
 
-=== DATOS ===
-Clusters con resumen, post_count, demand_signals, pain_signals,
-trend_data, competition.
+=== DATA ===
+Clusters with summary, post-count, demand signals, pain signals, trend data, competition.
 
-=== INSTRUCCIONES ===
-Para cada oportunidad:
-- nombre, problema, evidencia con numeros
-- scoring 1-10 en 4 criterios (pain 30%, trend 20%, competencia 25%, MVP 25%)
-- score total ponderado
-- target user, MVP features, monetizacion, build time
-- razonamiento
+=== INSTRUCTIONS ===
+For each opportunity:
+- Name, problem, numerical evidence
+- Scoring 1-10 on 4 criteria (pain 30%, trend 20%, competition 25%, MVP 25%)
+- Total weighted score
+- Target user, MVP features, monetization, build time
+- Reasoning
 
-Filtro: descartar AI chatbots genericos, AI wrappers, AI note apps,
-AI coding assistants, ideas "Uber para X" sin evidencia.
+Filter: Discard generic AI chatbots, AI wrappers, AI note apps, AI coding assistants, and "Uber for X" ideas without evidence.
 
-=== FORMATO DE RESPUESTA ===
-JSON estricto con schema definido.
+=== RESPONSE FORMAT ===
+Strict JSON with defined schema.
+
 ```
 
-### Estimacion de tokens
+### Token Estimation
 
-| Tamano del prompt | Modelo recomendado                    |
+| Prompt Size | Recommended Model |
 | ----------------- | ------------------------------------- |
-| < 8K tokens       | Cualquier LLM moderno                 |
-| 8K - 32K          | Claude Sonnet/Opus, GPT-4, Gemini Pro |
-| 32K - 100K        | Claude (cualquiera), Gemini 1.5+      |
-| > 100K            | Advertir y ofrecer modo comprimido    |
+| < 8K tokens | Any modern LLM |
+| 8K - 32K | Claude Sonnet/Opus, GPT-4, Gemini Pro |
+| 32K - 100K | Claude (any), Gemini 1.5+ |
 
-### Compresion (post-MVP)
+> 100K | Warn and offer compressed mode |
 
-Si el prompt es muy grande (>100K tokens), ofrecer comprimir resumenes. Excluido del MVP pero el builder debe advertir.
+### Compression (post-MVP)
 
-### Almacenamiento
+If the prompt is very large (>100K tokens), offer to compress summaries. Excluded from the MVP, but the builder must warn.
 
-- `scan.prompt_text` = prompt generado
-- `scan.prompt_tokens_est` = estimacion de tokens
+### Storage
 
-## Criterios de aceptacion
+- `scan.prompt_text` = generated prompt
+- `scan.prompt_tokens_est` = token estimate
 
-- [x] Genera prompt autocontenido con contexto + datos + instrucciones + formato
-- [x] Estima tokens y los guarda en el scan
-- [x] Guarda prompt completo en `scan.prompt_text`
-- [x] Advierte si el prompt excede 100K tokens
-- [x] Incluye instrucciones de formato JSON estricto en el prompt
-- [x] El JSON de respuesta esperado incluye: rank, score, name, problem, evidence, scoring (4 criterios), target_user, mvp_features, monetization, build_time, reasoning
+## Acceptance Criteria
 
-## Dependencias
+- [x] Generates a self-contained prompt with context, data, instructions, and formatting
+- [x] Estimates tokens and saves them in the scan
+- [x] Saves the complete prompt in `scan.prompt_text`
+- [x] Warns if the prompt exceeds 100K tokens
+- [x] Includes strict JSON formatting instructions in the prompt
+- [x] The expected response JSON includes: rank, score, name, problem, evidence, scoring (4 criteria), target_user, mvp_features, monetization, build_time, and reasoning
 
-- F08 (clusters procesados)
-- F02 (collection scans para guardar prompt)
+## Dependencies
+
+- F08 (clusters processed)
+- F02 (collection scans to save the prompt)
 
 ## Ref SPEC
 
-Seccion 5.3
+Section 5.3

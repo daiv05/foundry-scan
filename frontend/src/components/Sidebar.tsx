@@ -2,32 +2,40 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { mdiViewDashboard, mdiTargetVariant, mdiPlus, mdiCog, mdiWeatherSunny, mdiWeatherNight } from '@mdi/js'
+import { mdiViewDashboard, mdiHistory, mdiTargetVariant, mdiPlus, mdiCog, mdiWeatherSunny, mdiWeatherNight, mdiClose } from '@mdi/js'
 import Icon from './ui/Icon'
 import { useTheme } from '@/lib/useTheme'
 
 const LINKS = [
   { href: '/',              label: 'Dashboard',     icon: mdiViewDashboard },
+  { href: '/scans',         label: 'Scans',         icon: mdiHistory },
   { href: '/opportunities', label: 'Opportunities', icon: mdiTargetVariant },
   { href: '/scan/new',      label: 'New Scan',      icon: mdiPlus },
   { href: '/settings',      label: 'Settings',      icon: mdiCog },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname()
   const { theme, toggle } = useTheme()
 
   return (
-    <aside className="flex flex-col w-[260px] shrink-0 border-r-[3px] border-rb-fg bg-rb-bg h-screen sticky top-0">
+    <aside className="flex flex-col w-[260px] border-r-[3px] border-rb-fg bg-rb-bg h-full min-h-screen">
       {/* Brand */}
-      <div className="border-b-[3px] border-rb-fg p-sp-4">
+      <div className="flex items-center justify-between border-b-[3px] border-rb-fg p-sp-4">
         <p className="leading-none" style={{ fontFamily: 'var(--font-headline)' }}>
           <span className="block text-[24px] text-rb-fg tracking-[1px]">FOUNDRY</span>
           <span className="block text-[20px] text-rb-fg/80 tracking-[3px]">SCAN</span>
         </p>
-        <p className="text-[12px] text-rb-fg/60 uppercase tracking-[1px] mt-[6px]">
-          Opportunity finder
-        </p>
+        {/* Mobile close button */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden p-[6px] border-[2px] border-rb-fg hover:bg-rb-fg hover:text-rb-bg cursor-pointer"
+            aria-label="Close navigation"
+          >
+            <Icon path={mdiClose} size={18} />
+          </button>
+        )}
       </div>
 
       {/* Nav */}
@@ -39,6 +47,7 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={onClose}
               className={
                 `flex items-center gap-[12px] px-sp-4 py-[14px] ` +
                 `border-b-[3px] border-rb-fg ` +

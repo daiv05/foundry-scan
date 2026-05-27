@@ -66,7 +66,7 @@ export default function NewScanPage() {
   return (
     <div className="p-sp-5 max-w-[760px] mx-auto">
       <div className="border-b-[3px] border-rb-fg pb-sp-4 mb-sp-5">
-        <h1 className="text-[64px] leading-none">NEW SCAN</h1>
+        <h1 className="text-[40px] md:text-[64px] leading-none">NEW SCAN</h1>
         <p className="text-[14px] uppercase tracking-[1px] text-rb-fg/60 mt-[8px]">
           Configure data sources and launch the collection pipeline.
         </p>

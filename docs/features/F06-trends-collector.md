@@ -1,62 +1,66 @@
-# F06 — Trends Collector
+# F06 - Trends Collector
 
-## Objetivo
+## Objective
 
-Recolectar datos de tendencias de Google Trends para validar crecimiento de interes en nichos detectados.
+Collect Google Trends data to validate growth in interest in identified niches.
 
-## Alcance
+## Scope
 
-### Fuentes
+### Sources
 
-1. **Primario:** PyTrends (libreria Python para Google Trends)
-2. **Fallback:** Playwright (scraping directo de trends.google.com)
+1. **Primary:** PyTrends (Python library for Google Trends)
+2. **Fallback:** Playwright (direct scraping of trends.google.com)
 
-> **Cambio de implementación:** El diseño original usaba SerpAPI como fallback. La implementación real usa Playwright para hacer scraping de Google Trends si PyTrends falla. La variable de entorno `SERPAPI_KEY` no existe en el proyecto.
+> **Implementation Change:** The original design used SerpAPI as a fallback. The actual implementation uses Playwright to scrape Google Trends if PyTrends fails. The environment variable `SERPAPI_KEY` does not exist in the project.
 
-### Variables de entorno relevantes
+
+### Relevant Environment Variables
 
 ```
-TRENDS_GEO=US            # región para Google Trends
-TRENDS_TIMEFRAME=today 3-m  # ventana temporal
+TRENDS_GEO=US # region for Google Trends
+TRENDS_TIMEFRAME=today 3-m # time frame
 ```
 
-### Logica de fallback
+### Fallback Logic
 
-Si PyTrends falla (bloqueo, rate limit, cambio de API), usar Playwright para obtener los mismos datos. Sin intervencion del usuario.
+If PyTrends fails (blocking, rate limit, API change), use Playwright to obtain the same data. No user intervention required.
 
 ### Output
 
-Datos de tendencia por keyword/nicho que alimentan el scoring de trend_growth en el Processor.
+Trend data by keyword/niche that feeds the trend_growth scoring in the Processor.
 
-### Manejo de errores
+### Error Handling
 
-| Escenario                  | Accion                                        |
+| Scenario | Action |
+
 | -------------------------- | --------------------------------------------- |
-| PyTrends falla             | Fallback automatico a Playwright              |
-| Playwright también falla   | Omitir trends, marcar fuente como "sin datos" |
 
-### Almacenamiento
+| PyTrends fails | Automatic fallback to Playwright |
 
-Resultado en `raw_data` con `source = "trends"`.
+| Playwright also fails | Ignore trends, mark source as "no data" |
 
-### Credenciales
+## Storage
 
-- PyTrends: sin credenciales (API no oficial)
-- Playwright fallback: sin credenciales (scraping público)
+Result in `raw_data` with `source = "trends"`.
 
-## Criterios de aceptacion
+### Credentials
 
-- [x] Consulta Google Trends via PyTrends
-- [x] Fallback automatico a Playwright si PyTrends falla
-- [x] Manejo graceful si ambas fuentes fallan
-- [x] Guarda en `raw_data`
-- [x] Funciona como tarea asincrona
+- PyTrends: No credentials (unofficial API)
+- Playwright fallback: No credentials (public scraping)
 
-## Dependencias
+## Acceptance Criteria
+
+- [x] Query Google Trends via PyTrends
+- [x] Automatic fallback to Playwright if PyTrends fails
+- [x] Graceful handling if both sources fail
+- [x] Saves to `raw_data`
+- [x] Runs as an asynchronous task
+
+## Dependencies
 
 - F03 (backend core)
 - F02 (collection raw_data)
 
 ## Ref SPEC
 
-Seccion 5.1.3
+Section 5.1.3

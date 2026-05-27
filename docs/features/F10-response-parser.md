@@ -1,73 +1,75 @@
-# F10 — Response Parser
+# F10 - Response Parser
 
-## Objetivo
+## Objective
 
-Recibir la respuesta cruda del LLM pegada por el usuario y convertirla en oportunidades estructuradas.
+Receive the raw LLM response pasted by the user and convert it into structured opportunities.
 
-## Alcance
+## Scope
 
-### Pipeline de parseo
+### Parsing Pipeline
 
-1. **Extraer bloque JSON:** buscar ` ```json ... ``` `; fallback: primer `{ ... }` balanceado
-2. **Reparar JSON malformado:** trailing commas, comillas simples, comentarios `//`
-3. **Validar schema** con Pydantic
-4. **Validar valores:** scores en [1, 10], rank unico, campos requeridos
-5. **Recalcular score ponderado** en backend (no confiar en el total del LLM)
-   - Pesos: pain 30%, trend 20%, competencia 25%, MVP 25%
-6. **Insertar oportunidades** vinculadas al `scan_id`
+1. **Extract JSON block:** search for `json ... `; 1. Fallback: First balanced `{ ... }`
+2. **Fix malformed JSON:** trailing commas, single quotes, comments `//`
+3. **Validate schema** with Pydantic
+4. **Validate values:** scores in [1, 10], unique rank, required fields
+5. **Recalculate weighted score** in the backend (do not rely on the LLM total)
+
+- Weights: pain 30%, trend 20%, competition 25%, MVP 25%
+
+6. **Insert opportunities** linked to the `scan_id`
 
 ### Input
 
-```json
+````json
 {
   "response_text": "```json\n{ \"opportunities\": [...] }\n```",
   "llm_used": "Claude Opus 4.7"
 }
-```
+````
 
-### Manejo de errores
+### Error Handling
 
-| Error                              | Accion                                     |
-| ---------------------------------- | ------------------------------------------ |
-| No se encuentra bloque JSON        | Mostrar instrucciones de formato + retry   |
-| JSON invalido                      | Intentar reparacion; si falla, retry       |
-| Schema invalido (campos faltantes) | Mostrar diff de lo que falta + retry       |
-| Score fuera de rango               | Auto-clamp a [1, 10] + advertencia visible |
-| Cero oportunidades                 | Pedir confirmacion antes de guardar        |
+| Error                           | Action                                    |
+| ------------------------------- | ----------------------------------------- |
+| JSON block not found            | Show formatting instructions + retry      |
+| Invalid JSON                    | Attempt repair; if it fails, retry        |
+| Invalid schema (missing fields) | Show diff of what's missing + retry       |
+| Score out of range              | Auto-clamp to [1, 10] + warning displayed |
+| Zero attempts                   | Ask for confirmation before saving        |
 
-### Modo asistido
+### Assisted Mode
 
-Si el parseo falla, ofrecer editor JSON con validacion en vivo (el frontend lo muestra, ver F13).
+If parsing fails, offer a JSON editor with live validation (the frontend displays it, see F13).
 
-### Almacenamiento
+### Storage
 
-- `scan.llm_response_raw` = respuesta cruda
-- `scan.llm_used` = etiqueta del LLM
+- `scan.llm_response_raw` = raw response
+- `scan.llm_used` = LLM label
 - `scan.submitted_at` = timestamp
-- `scan.status` = `parsing` → `completed`
-- Oportunidades insertadas en collection `opportunities`
+- `scan.status` = `parsing` --> `completed`
+- Opportunities inserted into collection `opportunities`
 
 ### Endpoint retry
 
-`POST /api/scans/{id}/response/retry` reprocesa la misma respuesta cruda guardada, util si se corrigio manualmente.
+`POST /api/scans/{id}/response/retry` reprocesses the same saved raw response, useful if it was manually corrected.
 
-## Criterios de aceptacion
+## Acceptance Criteria
 
-- [x] Extrae JSON de ` ```json ``` ` y de `{ }` balanceado
-- [x] Repara trailing commas, comillas simples, comentarios
-- [x] Valida schema con Pydantic
-- [x] Clampea scores fuera de rango y genera advertencia
-- [x] Recalcula score ponderado (no usa el del LLM)
-- [x] Inserta oportunidades en PocketBase
-- [x] Actualiza scan status a `completed`
-- [x] Retry funciona reprocesando la respuesta guardada
-- [x] Errores devuelven mensajes claros y accionables
+- [x] Extracts JSON from ``json` and from balanced `{ }`
+- [x] Fixes trailing commas, single quotes, and comments
+- [x] Validates schema with Pydantic
+- [x] Clamps out-of-range scores and generates a warning
+- [x] Recalculates weighted score (does not use the LLM score)
+- [x] Inserts opportunities into PocketBase
+- [x] Updates scan status to `completed`
+- [x] Retry works by reprocessing the saved response
+- [x] Errors return clear and actionable messages
 
-## Dependencias
+## Dependencies
 
-- F03 (endpoints de response)
-- F02 (collections scans y opportunities)
+- F03 (response endpoints)
+- F02 (collections scans and opportunities)
 
 ## Ref SPEC
 
-Seccion 5.4
+Section 5.4

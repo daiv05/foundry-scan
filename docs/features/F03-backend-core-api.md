@@ -1,85 +1,85 @@
-# F03 — Backend Core & API Structure
+# F03 - Backend Core & API Structure
 
-## Objetivo
+## Objective
 
-Establecer la estructura del backend FastAPI, conexion con PocketBase, middleware y todos los endpoints REST (stubs iniciales).
+Establish the structure of the FastAPI backend, connection to PocketBase, middleware, and all REST endpoints (initial stubs).
 
-## Alcance
+## Scope
 
-### Estructura del backend
+### Backend structure
 
 ```
 backend/
 ├── app/
-│   ├── main.py              # FastAPI app, middleware, lifespan
-│   ├── config.py            # Settings desde env vars
-│   ├── db.py                # PocketBase SDK client
-│   ├── routers/
-│   │   ├── scans.py         # /api/scans/*
-│   │   ├── opportunities.py # /api/opportunities/*
-│   │   └── configs.py       # /api/configs/*
-│   ├── services/
-│   │   ├── scan_service.py  # Orquestacion del pipeline
-│   │   ├── collector/       # (F04-F07)
-│   │   ├── processor.py     # (F08)
-│   │   ├── prompt_builder.py # (F09)
-│   │   └── response_parser.py # (F10)
-│   └── models/
-│       └── schemas.py       # Pydantic models
+│ ├── main.py # FastAPI app, middleware, lifespan
+│ ├── config.py # Settings from env vars
+│ ├── db.py # PocketBase SDK client
+│ ├── routers/
+│ │ ├── scans.py # /api/scans/*
+│ │ ├── opportunities.py # /api/opportunities/*
+│ │ └── configs.py # /api/configs/*
+│ ├── services/
+│ │ ├── scan_service.py # Pipeline orchestration
+│ │ ├── collector/ # (F04-F07)
+│ │ ├── processor.py # (F08)
+│ │ ├── prompt_builder.py # (F09)
+│ │ └── response_parser.py # (F10)
+│ └── models/
+│ └── schemas.py # Pydantic models
 ├── requirements.txt
 ├── Dockerfile
 └── .env
 ```
 
-### Conexion PocketBase
+### PocketBase Connection
 
-Backend usa credenciales del admin user (env vars `PB_ADMIN_EMAIL`, `PB_ADMIN_PASSWORD`) para autenticarse contra PocketBase server-side via su SDK Python.
+Backend uses credentials admin user (env vars `PB_ADMIN_EMAIL`, `PB_ADMIN_PASSWORD`) to authenticate against PocketBase server-side via your Python SDK.
 
-### Middleware opcional
+### Optional middleware
 
-Validar header `Cf-Access-Authenticated-User-Email` en produccion. En dev, skip.
+Validate header `Cf-Access-Authenticated-User-Email` in production. In dev, skip.
 
 ### Endpoints (stubs)
 
 #### Scans
 
-| Metodo | Ruta                           | Descripcion                           |
-| ------ | ------------------------------ | ------------------------------------- |
-| POST   | /api/scans                     | Crear y lanzar scan                   |
-| GET    | /api/scans                     | Listar scans                          |
-| GET    | /api/scans/{id}                | Detalle de scan                       |
-| GET    | /api/scans/{id}/status         | Estado actual                         |
-| DELETE | /api/scans/{id}                | Eliminar scan y datos asociados       |
+| Method | Route | Description |
+| ------ | --------------------------- | ------------------------------------- |
+| POST | /api/scans | Create and launch scan |
+| GET | /api/scans | List scans |
+| GET | /api/scans/{id} | Scan detail |
+| GET | /api/scans/{id}/status | Current status |
+| DELETE | /api/scans/{id} | Delete scan and associated data |
 
-#### Prompt y respuesta
+#### Prompt and Response
 
-| Metodo | Ruta                           | Descripcion                           |
+| Method | Path | Description |
 | ------ | ------------------------------ | ------------------------------------- |
-| GET    | /api/scans/{id}/prompt         | Prompt listo para copiar              |
-| POST   | /api/scans/{id}/response       | Recibir respuesta pegada              |
-| POST   | /api/scans/{id}/response/retry | Reintentar parseo                     |
-| GET    | /api/scans/{id}/response/raw   | Ver respuesta cruda guardada          |
+| GET | /api/scans/{id}/prompt | Prompt ready to copy |
+| POST | /api/scans/{id}/response | Receive pasted response |
+| POST | /api/scans/{id}/response/retry | Retry parsing |
+| GET | /api/scans/{id}/response/raw | View saved raw response |
 
 #### Opportunities
 
-| Metodo | Ruta                           | Descripcion                           |
+| Method | Path | Description |
 | ------ | ------------------------------ | ------------------------------------- |
-| GET    | /api/scans/{id}/opportunities  | Oportunidades de un scan              |
-| GET    | /api/opportunities             | Todas las oportunidades               |
-| GET    | /api/opportunities/{id}        | Detalle de una oportunidad            |
-| PATCH  | /api/opportunities/{id}        | Actualizar estado o notas             |
-| GET    | /api/opportunities/new         | Nuevas vs scans previos               |
+| GET | /api/scans/{id}/opportunities | Scan opportunities |
+| GET | /api/opportunities | All Opportunities |
+| GET | /api/opportunities/{id} | Opportunity Details |
+| PATCH | /api/opportunities/{id} | Update Status or Notes |
+| GET | /api/opportunities/new | New vs. Previous Scans |
 
-#### Configs y export
+#### Configs and Export
 
-| Metodo | Ruta                               | Descripcion              |
+| Method | Path | Description |
 | ------ | ---------------------------------- | ------------------------ |
-| POST   | /api/configs                       | Guardar template         |
-| GET    | /api/configs                       | Listar templates         |
-| PUT    | /api/configs/{id}                  | Actualizar               |
-| DELETE | /api/configs/{id}                  | Eliminar                 |
-| GET    | /api/scans/{id}/export/markdown    | Exportar reporte MD      |
-| GET    | /api/scans/{id}/export/prompt.txt  | Descargar prompt .txt    |
+| POST | /api/configs | Save Template |
+| GET | /api/configs | List Templates |
+| PUT | /api/configs/{id} | Update |
+| DELETE | /api/configs/{id} | Delete |
+| GET | /api/scans/{id}/export/markdown | Export MD Report |
+| GET | /api/scans/{id}/export/prompt.txt | Download prompt .txt |
 
 ### Pydantic Models
 
@@ -88,18 +88,18 @@ Validar header `Cf-Access-Authenticated-User-Email` en produccion. En dev, skip.
 - `LLMResponseInput` (`response_text`, `llm_used`)
 - `ScanConfigCreate`, `ScanConfigResponse`
 
-## Criterios de aceptacion
+## Acceptance Criteria
 
-- [x] FastAPI arranca y todos los endpoints responden (stubs con 501 o datos mock)
-- [x] Conexion con PocketBase funcional (CRUD basico)
-- [x] Pydantic models definen contratos claros
-- [x] `POST /api/scans` crea un registro en PocketBase con status `pending`
+- [x] FastAPI starts and all endpoints respond (stubs with 501 or mock data)
+- [x] Functional connection to PocketBase (basic CRUD)
+- [x] Pydantic models define clear contracts
+- [x] `POST /api/scans` creates a record in PocketBase with the status `pending`
 
-## Dependencias
+## Dependencies
 
-- F01 (servicios corriendo)
-- F02 (collections creadas)
+- F01 (services running)
+- F02 (collections created)
 
 ## Ref SPEC
 
-Seccion 7
+Section 7

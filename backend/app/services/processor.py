@@ -1,22 +1,22 @@
 """
-F08 — Processor
+F08 - Processor
 
 Transforms raw collected data into clean, clustered, scored input
 for the LLM prompt builder (F09).
 
 Pipeline:
-  1. Extract     — pull posts/items from raw_data; isolate trends + PH as metadata
-  2. Clean       — filter short (<10 words) / spam, normalise text
-  3. Deduplicate — cosine similarity threshold (≥ 0.85)
-  4. Cluster     — TF-IDF + KMeans, auto k via silhouette score (range 3–15)
-  5. Score       — weighted signals per cluster
-  6. Summarise   — representative phrases + concise cluster description
+  1. Extract     - pull posts/items from raw_data; isolate trends + PH as metadata
+  2. Clean       - filter short (<10 words) / spam, normalise text
+  3. Deduplicate - cosine similarity threshold (≥ 0.85)
+  4. Cluster     - TF-IDF + KMeans, auto k via silhouette score (range 3–15)
+  5. Score       - weighted signals per cluster
+  6. Summarise   - representative phrases + concise cluster description
 
 Signal weights (spec §5.2):
-  pain signal       → 1x
-  demand signal     → 3x
-  high engagement   → 1.5x
-  Ask HN post       → 2x
+  pain signal       --> 1x
+  demand signal     --> 3x
+  high engagement   --> 1.5x
+  Ask HN post       --> 2x
 """
 from __future__ import annotations
 
@@ -66,8 +66,8 @@ _WS_RE = re.compile(r"\s+")
 def _extract_items(raw_records: list[dict]) -> tuple[list[dict], dict[str, Any]]:
     """
     Split raw_data records into:
-      items    — normalised Reddit + HN post dicts ready for clustering
-      metadata — trends + ProductHunt context (used by PromptBuilder, F09)
+      items    - normalised Reddit + HN post dicts ready for clustering
+      metadata - trends + ProductHunt context (used by PromptBuilder, F09)
     """
     items: list[dict] = []
     metadata: dict[str, Any] = {"trends": {}, "producthunt": {}}
@@ -219,7 +219,7 @@ def _best_k(matrix, k_min: int, k_max: int) -> int:
         if score > best_score:
             best_score, best_k = score, k
 
-    logger.debug("[processor] silhouette sweep → best k=%d (score=%.4f)", best_k, best_score)
+    logger.debug("[processor] silhouette sweep --> best k=%d (score=%.4f)", best_k, best_score)
     return best_k
 
 
@@ -300,7 +300,7 @@ def _build_clusters(
 
         extra = f", Ask HN threads: {ask_hn_count}" if ask_hn_count else ""
         summary = (
-            f"Cluster '{label}' — {len(group)} posts from {', '.join(sources)}. "
+            f"Cluster '{label}' - {len(group)} posts from {', '.join(sources)}. "
             f"Pain signals: {pain_count}, demand signals: {demand_count}{extra}. "
             f"Weighted score: {weighted:.1f}. "
             f"Top topics: {'; '.join(phrases[:3])}."

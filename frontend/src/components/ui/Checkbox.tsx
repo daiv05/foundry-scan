@@ -1,5 +1,5 @@
 /**
- * RawBlock Checkbox — 20×20, square, 3px border, theme-aware.
+ * RawBlock Checkbox - 20×20, square, 3px border, theme-aware.
  * Checked = inverse fill (rb-fg on light, rb-bg on dark).
  */
 

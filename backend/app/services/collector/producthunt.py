@@ -1,8 +1,8 @@
 """
-Product Hunt Collector — F07
+Product Hunt Collector - F07
 
 Role: competition & saturation filter only.
-Not used for opportunity discovery — used to score how saturated a niche
+Not used for opportunity discovery - used to score how saturated a niche
 already is (feeds `low_competition` in the Processor, F08).
 
 API: Product Hunt GraphQL v2
@@ -11,7 +11,7 @@ API: Product Hunt GraphQL v2
   Docs:     https://api.producthunt.com/v2/docs
 
 If the token is missing or the API is down, logs a warning and returns
-empty data — scan continues with other sources.
+empty data - scan continues with other sources.
 
 Output shape stored in raw_data.data:
   {
@@ -58,9 +58,9 @@ logger = logging.getLogger(__name__)
 PH_GRAPHQL_URL = "https://api.producthunt.com/v2/api/graphql"
 _TIMEOUT = 15.0
 
-# ── Keyword → PH topic slug mapping ──────────────────────────────────────────
+# ── Keyword --> PH topic slug mapping ──────────────────────────────────────────
 # PH topic slugs are lowercase-hyphenated. If a keyword isn't listed here,
-# we derive a slug automatically (lowercase, spaces → hyphens).
+# we derive a slug automatically (lowercase, spaces --> hyphens).
 
 KEYWORD_TO_SLUG: dict[str, str] = {
     "saas":                 "saas",
@@ -115,9 +115,9 @@ def _to_slug(keyword: str) -> str:
 def _saturation_score(total: int, recent: int, avg_votes: float) -> float:
     """
     0-10 score: higher = more saturated niche.
-      density  (60 %): log-scaled count of products (100+ products → 10)
+      density  (60 %): log-scaled count of products (100+ products --> 10)
       recency  (25 %): fraction of products launched in the last 6 months
-      activity (15 %): avg vote count, log-scaled (1 000+ avg votes → 10)
+      activity (15 %): avg vote count, log-scaled (1 000+ avg votes --> 10)
     """
     density  = min(10.0, math.log1p(total) / math.log1p(100) * 10)
     recency  = (recent / total * 10) if total else 0.0
@@ -234,7 +234,7 @@ async def collect(
     """
     token = settings.producthunt_token
     if not token:
-        logger.warning("[ph] PRODUCTHUNT_TOKEN not set — skipping.")
+        logger.warning("[ph] PRODUCTHUNT_TOKEN not set - skipping.")
         return {}
 
     keywords:    list[str] = config.get(

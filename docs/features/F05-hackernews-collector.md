@@ -1,68 +1,77 @@
-# F05 — Hacker News Collector
+# F05 - Hacker News Collector
 
-## Objetivo
+## Objective
 
-Recolectar posts de Hacker News relevantes a oportunidades de micro-SaaS.
+Collect Hacker News posts relevant to micro-SaaS opportunities.
 
-## Alcance
+## Scope
 
 ### API
 
-API publica de HN (Firebase). Sin autenticacion requerida.
+Hyper News (Firebase) public API. No authentication required.
 
-### Fuentes
+### Sources
 
 - Top stories
 - New stories
 - Ask HN
 - Show HN
 
-### Filtros
+### Filters
 
-- Posts con 5+ puntos
-- Relacionados a SaaS, automatizacion, herramientas, productividad
-- Ask HN tiene peso extra (2x en deteccion de senales, definido en F08)
+- Posts with 5+ points
+- Related to SaaS, automation, tools, productivity
+- Ask HN has extra weight (2x in signal detection, defined in F08)
 
-### Output por post
+### Output per post
 
 ```json
 {
-  "source": "hackernews",
-  "title": "...",
-  "url": "...",
-  "score": 85,
-  "num_comments": 23,
-  "comments": ["...", "..."],
-  "created_utc": "...",
-  "type": "ask_hn",
-  "pain_signals": [...],
-  "demand_signals": [...]
+"source": "hackernews",
+
+"title": "...",
+
+"url": "...",
+
+"score": 85,
+
+"num_comments": 23,
+
+"comments": ["...", "..."],
+
+"created_utc": "...",
+
+"type": "ask_hn",
+
+"pain_signals": [...],
+
+"demand_signals": [...]
 }
 ```
 
-### Manejo de errores
+### Error Handling
 
-- API publica sin rate limit agresivo
-- Si falla: scan continua con las demas fuentes, se marca HN como "sin datos"
+- Public API without aggressive rate limit
+- If it fails: scan continues with the other sources, HN is marked as "without" Data
 
-### Almacenamiento
+### Storage
 
-Resultado en `raw_data` con `source = "hackernews"`.
+Result in `raw_data` with `source = "hackernews"`.
 
-## Criterios de aceptacion
+## Acceptance Criteria
 
-- [x] Consume API publica de HN
-- [x] Filtra por score >= 5 y relevancia
-- [x] Distingue tipo de post (ask_hn, show_hn, story)
-- [x] Genera output estructurado
-- [x] Guarda en `raw_data`
-- [x] Funciona como tarea asincrona
+- [x] Consumes HN's public API
+- [x] Filters by score >= 5 and relevance
+- [x] Distinguishes post type (ask_hn, show_hn, story)
+- [x] Generates structured output
+- [x] Saves to `raw_data`
+- [x] Works as an asynchronous task
 
-## Dependencias
+## Dependencies
 
 - F03 (backend core)
 - F02 (collection raw_data)
 
 ## Ref SPEC
 
-Seccion 5.1.2
+Section 5.1.2

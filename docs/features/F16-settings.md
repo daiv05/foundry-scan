@@ -1,76 +1,76 @@
-# F16 — Settings & Configuration
+# F16 - Settings & Configuration
 
-## Objetivo
+## Purpose
 
-Pagina de configuracion que muestra el estado de las fuentes de datos, los env vars activos y permite gestionar los subreddits por defecto del scan.
+Configuration page that displays the status of data sources, active environment variables, and allows you to manage the default scan subreddits.
 
-## Alcance
+## Scope
 
-### Pagina: /settings
+### Page: /settings
 
 #### 1. Data Sources panel
 
-4 tarjetas con badge de estado:
+4 cards with status badges:
 
-| Fuente        | Estado      | Credenciales |
+| Source | Status | Credentials |
 | ------------- | ----------- | ------------ |
-| Reddit        | Ready       | Ninguna (Playwright scraping) |
-| Hacker News   | Ready       | Ninguna (API pública) |
-| Google Trends | Ready       | Ninguna (PyTrends + Playwright fallback) |
-| Product Hunt  | Configured / Not configured | `PRODUCTHUNT_TOKEN` opcional |
+| Reddit | Ready | None (Playwright scraping) |
+| Hacker News | Ready | None (Public API) |
+| Google Trends | Ready | None (PyTrends + Playwright fallback) |
+| Product Hunt | Configured / Not configured | `PRODUCTHUNT_TOKEN` optional |
 
-Cada tarjeta muestra: nombre, badge de estado, método de conexión, y config activa (valores de env vars relacionados).
+Each card displays: name, status badge, connection method, and active configuration (related environment variable values).
 
-#### 2. Environment Variables panel
+#### 2. Environment Variables Panel
 
-Tabla read-only de las variables de entorno activas del backend:
+Read-only table of active backend environment variables:
 
-| Variable                  | Tipo     |
+| Variable | Type |
 | ------------------------- | -------- |
-| `PRODUCTHUNT_TOKEN`       | presencia (set / not set) — token nunca expuesto |
-| `TRENDS_GEO`              | valor actual |
-| `TRENDS_TIMEFRAME`        | valor actual |
-| `REDDIT_REQUEST_DELAY_MS` | valor actual |
-| `REDDIT_FETCH_COMMENTS`   | valor actual |
+| `PRODUCTHUNT_TOKEN` | presence (set / not set) - token never exposed |
+| `TRENDS_GEO` | current value |
+| `TRENDS_TIMEFRAME` | current value |
+| `COLLECTOR_REQUEST_DELAY_MS` | current value |
+| `REDDIT_FETCH_COMMENTS` | current value |
 
-Incluye instrucciones de cómo actualizar: editar `backend/.env` + `docker compose up -d --force-recreate backend`.
+Includes instructions on how to update: edit `backend/.env` + `docker compose up -d --force-recreate backend`.
 
-> **Nota:** Los env vars NO son editables desde la UI (seguridad + los containers necesitan `--force-recreate` para recargarlos, no solo restart).
+> **Note:** Environment variables are NOT editable from the UI (security + containers need `--force-recreate` to reload, not just restart).
 
-#### 3. Scan Defaults panel
+#### 3. Scan Defaults Panel
 
-Editor de subreddits por defecto almacenados en `scan_configs` con `is_default=true`.
+Editor of default subreddits stored in `scan_configs` with `is_default=true`.
 
-- Tags removibles por subreddit
-- Input para agregar nuevos (Enter o botón Add)
-- Botón "Save defaults" — POST o PUT según si ya existe un default
-- `/scan/new` carga estos defaults al inicializar
+- Removable tags per subreddit
+- Input to add new subreddits (Enter or Add button)
+- "Save defaults" button - POST or PUT depending on whether a default already exists
+- `/scan/new` loads these defaults on initialization
 
-### Endpoint nuevo
+### New Endpoint
 
-| Metodo | Ruta                  | Descripcion                                   |
+| Method | Path | Description |
 | ------ | --------------------- | --------------------------------------------- |
-| GET    | /api/settings/status  | Estado de fuentes + snapshot de config activa |
+| GET | /api/settings/status | Source status + snapshot of active configuration |
 
-Los endpoints de `/api/configs` (CRUD) ya existian desde F03 y se usan para los scan defaults.
+The `/api/configs` endpoints (CRUD) have existed since F03 and are used for scan defaults.
 
-### Variables de entorno relevantes (actualizadas vs spec original)
+### Relevant Environment Variables (updated vs. original spec)
 
-Las variables `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET` y `SERPAPI_KEY` fueron eliminadas.
-Solo `PRODUCTHUNT_TOKEN` requiere configuración manual.
+The variables `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, and `SERPAPI_KEY` have been removed.
+Only `PRODUCTHUNT_TOKEN` requires manual configuration.
 
-## Criterios de aceptacion
+## Acceptance Criteria
 
-- [x] Pagina de settings accesible desde navegacion
-- [x] Muestra status de conexion de cada fuente de datos
-- [x] Configuracion basica de subreddits por defecto (editable, se persiste en DB)
-- [x] UI clara indicando que keys van en env vars del backend con instrucciones exactas
+- [x] Settings page accessible from navigation
+- [x] Displays connection status for each data source
+- [x] Basic default subreddit configuration (editable, persisted in the database)
+- [x] Clear UI indicating which keys go in the backend environment variables with exact instructions
 
-## Dependencias
+## Dependencies
 
-- F11 (shell y routing)
-- F03 (endpoints de configs, settings/status)
+- F11 (shell and routing)
+- F03 (config endpoints, settings/status)
 
 ## Ref SPEC
 
-Seccion 8.1 (ruta /settings), seccion 7.1 (endpoints configs)
+Section 8.1 (route /settings), section 7.1 (config endpoints)

@@ -1,53 +1,83 @@
-# F17 — Error Handling & Resilience
+# F17 - Error Handling & Resilience
 
-## Objetivo
+## Objective
 
-Implementar manejo robusto de errores en todo el pipeline, con retries, fallbacks y timeouts.
+Robust error handling throughout the pipeline, including retries, fallbacks, timeouts, and stale data expiration.
 
-## Alcance
+## Scope (adjusted)
 
-### Errores por componente
+Several points from the original spec were already implemented in F04-F10. This feature fills the actual gaps identified during review.
 
-| Escenario                     | Comportamiento                                          |
-| ----------------------------- | ------------------------------------------------------- |
-| Reddit API rate limit         | Retry con backoff exponencial (max 3)                   |
-| PyTrends falla                | Fallback automatico a SerpAPI                           |
-| SerpAPI cuota agotada         | Omitir trends, marcar fuente como "sin datos"           |
-| Product Hunt API caida        | Omitir competencia, marcar fuente como "sin datos"      |
-| Scan excede 10 min en collect | Timeout, status = `failed`                              |
-| Prompt muy grande (>100K)     | Ofrecer modo comprimido (advertencia)                   |
-| Respuesta LLM no parseable   | Retry asistido con editor JSON                          |
-| Texto sin JSON                | Instrucciones + ejemplo de formato                      |
+### Status by Scenario
 
-### Principios
+| Scenario | Behavior | Status |
 
-- **Degradacion graceful:** si una fuente falla, el scan continua con las demas. Se marca que fuente no contribuyo datos.
-- **Timeout global:** 10 minutos para la fase de collecting. Si se excede, `scan.status = 'failed'` con `error_message` descriptivo.
-- **Backoff exponencial:** para APIs con rate limit (Reddit especialmente).
-- **Errores visibles:** el usuario siempre ve que salio mal, no errores silenciosos.
+|---|---|---|
+
+| Reddit rate limit | Retry with exponential backoff (max 3, 30/60/120 s) | ✅ reddit.py |
+
+| PyTrends fails | Automatic fallback to Playwright scraper | ✅ trends.py |
+
+| Individual source fails | Scan continues; source marked in logs | ✅ scan_service.py |
+
+| Scan exceeds 10 min in collect | `asyncio.wait_for(timeout=600)` --> status=`failed` | ✅ F17 |
+
+| raw_data stale > 30 days | cleanup_service removes raw_data (prompt intact) | ✅ F17 |
+
+| LLM response not parsable | 422 + manual editor; /retry re-parse | ✅ F10 |
+
+| React page error | error.tsx by segment with RETRY button | ✅ F17 |
+
+| Path does not exist | not-found.tsx (404) with link to dashboard | ✅ F17 |
+
+### Principles
+
+- **Gracious Degradation:** If one source fails, the scan continues with the others.
+
+- **Global Timeout:** 10 minutes for the collecting phase. If exceeded --> `status=failed`.
+
+- **Exponential Backoff:** Reddit (already implemented in F04).
+
+- **Visible Errors:** Readable messages in the UI; never silent errors.
+
+- **Automatic Expiration:** Raw_data deleted after 30 days in `awaiting_llm_input`.
 
 ### Scan failed state
 
-Cuando un scan falla:
-- `scan.status = 'failed'`
-- `scan.error_message` con descripcion legible
-- La UI muestra el error con opcion de reintentar
+- `scan.status = "failed"`
+- `scan.error_message` with readable description
+- UI displays error in red with option to rescan
 
-### Expiracion de raw_data
+### Raw_data cleanup
 
-Si pasan 30 dias sin que el usuario complete un scan en `awaiting_llm_input`, el `raw_data` se elimina automaticamente. El prompt sigue accesible.
+- `cleanup_service.run_periodic_cleanup()` runs in the background when the backend starts
+- Every 24 hours, checks for scans in `awaiting_llm_input` with `created` > 30 days old
+- Deletes associated `raw_data` records (the `prompt_text` remains)
 
-## Criterios de aceptacion
+## Files modified / created
 
-- [ ] Reddit retry con backoff funciona
-- [ ] Fallback PyTrends → SerpAPI funciona
-- [ ] Fuentes fallidas se marcan correctamente, no rompen el scan
-- [ ] Timeout de 10 min en collecting
-- [ ] Error messages legibles en scan failed
-- [ ] UI muestra errores con opcion de retry
-- [ ] raw_data se expira tras 30 dias sin completar
+### Backend
+- `backend/app/services/scan_service.py` - `asyncio.wait_for(timeout=600)` in collecting
+- `backend/app/services/cleanup_service.py` - **NEW** - expiration logic
+- `backend/app/main.py` - `asyncio.create_task(run_periodic_cleanup())` in lifespan
 
-## Dependencias
+### Frontend
+- `frontend/src/app/error.tsx` - **NEW** - root error boundary
+- `frontend/src/app/not-found.tsx` - **NEW** - 404 page
+- `frontend/src/app/scan/[id]/error.tsx` - **NEW** - scan segment error boundary
+- `frontend/src/app/opportunities/[id]/error.tsx` - **NEW** - opportunity segment error boundary
+
+## Acceptance Criteria
+
+- [x] Reddit retry with backoff works (F04)
+- [x] PyTrends --> Playwright fallback works (F06)
+- [x] Failed sources are correctly marked, do not break the scan
+- [x] 10 min timeout on collecting
+- [x] Error Readable messages in scan failed
+- [x] UI displays errors with retry option
+- [x] raw_data expires after 30 days without completion
+
+## Dependencies
 
 - F04-F07 (collectors)
 - F10 (response parser errors)
@@ -55,4 +85,4 @@ Si pasan 30 dias sin que el usuario complete un scan en `awaiting_llm_input`, el
 
 ## Ref SPEC
 
-Secciones 10 (expiracion), 11 (errores)
+Sections 10 (expiration), 11 (errors)

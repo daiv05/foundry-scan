@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -10,6 +11,7 @@ from app.config import settings
 from app.db import pb
 from app.routers import configs, opportunities, scans
 from app.routers import settings as settings_router
+from app.services.cleanup_service import run_periodic_cleanup
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,13 +24,23 @@ async def lifespan(app: FastAPI):
         await pb.connect()
     except Exception as exc:
         logger.warning("PocketBase connection failed at startup: %s", exc)
+
+    # Background task: expire raw_data for stale scans every 24 h (F17)
+    cleanup_task = asyncio.create_task(run_periodic_cleanup())
+
     yield
+
     # Shutdown
+    cleanup_task.cancel()
+    try:
+        await cleanup_task
+    except asyncio.CancelledError:
+        pass
     await pb.disconnect()
 
 
 app = FastAPI(
-    title="AlcSaaS API",
+    title="FoundryScan API",
     version="0.1.0",
     lifespan=lifespan,
 )

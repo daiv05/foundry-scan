@@ -84,7 +84,7 @@ function SubredditsEditor({ configs, onSaved }: { configs: ScanConfig[]; onSaved
     <div className="space-y-sp-3">
       <div className="flex flex-wrap gap-[6px]">
         {subreddits.length === 0 ? (
-          <span className="text-[14px] italic text-rb-fg/60">No subreddits — add at least one</span>
+          <span className="text-[14px] italic text-rb-fg/60">No subreddits - add at least one</span>
         ) : (
           subreddits.map(sr => (
             <span
@@ -177,7 +177,7 @@ export default function SettingsPage() {
     <div className="p-sp-5 max-w-[960px] mx-auto space-y-sp-5">
       {/* Header */}
       <div className="pb-sp-4 border-b-[3px] border-rb-fg">
-        <h1 className="text-[64px] leading-none">SETTINGS</h1>
+        <h1 className="text-[40px] md:text-[64px] leading-none">SETTINGS</h1>
         <p className="text-[14px] uppercase tracking-[1px] text-rb-fg/60 mt-[8px]">
           Configuration lives in{' '}
           <code className="bg-rb-fg text-rb-bg px-[6px] py-[2px]" style={{ fontFamily: 'var(--font-mono)' }}>
@@ -270,7 +270,7 @@ export default function SettingsPage() {
                       )
                     ) : (
                       <span className="text-rb-fg font-bold" style={{ fontFamily: 'var(--font-mono)' }}>
-                        {String(info.value ?? info.default ?? '—')}
+                        {String(info.value ?? info.default ?? '-')}
                       </span>
                     )}
                   </td>

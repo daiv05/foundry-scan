@@ -1,12 +1,12 @@
 /**
- * RawBlock Input — square, theme-aware sunken fill, 3px border.
+ * RawBlock Input - square, theme-aware sunken fill, 3px border.
  * Focus uses an outline (painted outside) so layout never shifts.
  */
 
 import { forwardRef } from 'react'
 import type { InputHTMLAttributes, TextareaHTMLAttributes } from 'react'
 
-// Shared focus outline — sits outside the border, doesn't affect layout.
+// Shared focus outline - sits outside the border, doesn't affect layout.
 // `currentColor` follows text color, so it auto-inverts with the theme.
 const FOCUS_OUTLINE       = 'focus:[outline:2px_solid_currentColor] focus:[outline-offset:0]'
 const FOCUS_OUTLINE_ERROR = 'focus:[outline:2px_solid_var(--color-rb-error)] focus:[outline-offset:0]'

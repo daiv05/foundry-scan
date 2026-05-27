@@ -10,6 +10,7 @@ export type ScanStatus =
 export interface Scan {
   id: string
   status: ScanStatus
+  archived: boolean
   config: Record<string, unknown>
   prompt_text?: string
   prompt_tokens_est?: number
@@ -33,6 +34,7 @@ export interface Scoring {
 
 export type OpportunityStatus =
   | 'new'
+  | 'saved'
   | 'evaluating'
   | 'discarded'
   | 'building'

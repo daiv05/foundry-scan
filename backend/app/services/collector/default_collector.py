@@ -1,5 +1,5 @@
 """
-Reddit Collector — F04 (Playwright scraper)
+Reddit Collector - F04 (Playwright scraper)
 
 Navigates old.reddit.com search pages with a headless Chromium browser.
 No API credentials required.
@@ -198,7 +198,7 @@ async def _scrape_search_page(
         return []
 
     if await _is_rate_limited(page):
-        logger.warning("[reddit] Rate-limited on r/%s — backing off.", subreddit)
+        logger.warning("[reddit] Rate-limited on r/%s - backing off.", subreddit)
         raise _RateLimitError()
 
     result_els = await page.query_selector_all(_SEL_RESULT)
@@ -305,7 +305,7 @@ async def collect(
     max_posts:      int       = int(config.get("max_posts", 20))
     time_filter:    str       = config.get("time_filter", "month")
     fetch_comments: bool      = bool(config.get("fetch_comments", settings.reddit_fetch_comments))
-    delay_ms:       int       = settings.reddit_request_delay_ms
+    delay_ms:       int       = settings.collector_request_delay_ms
 
     logger.info(
         "[reddit] Collecting scan=%s subreddits=%s fetch_comments=%s",
@@ -346,10 +346,10 @@ async def _run_with_retry(
             )
         except _RateLimitError:
             if attempt == max_attempts:
-                logger.error("[reddit] Rate limit — max retries exceeded.")
+                logger.error("[reddit] Rate limit - max retries exceeded.")
                 return []
             logger.warning(
-                "[reddit] Rate limited — retry %d/%d in %.0fs",
+                "[reddit] Rate limited - retry %d/%d in %.0fs",
                 attempt, max_attempts, backoff,
             )
             await asyncio.sleep(backoff)
@@ -399,7 +399,7 @@ async def _scrape_all(
                     )
                     results.extend(posts)
                     logger.debug(
-                        "[reddit] r/%s query='%s...' → %d posts",
+                        "[reddit] r/%s query='%s...' --> %d posts",
                         sub, query[:30], len(posts),
                     )
         finally:

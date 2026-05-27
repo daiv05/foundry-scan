@@ -82,7 +82,7 @@ export default function ScanProgressPage() {
         <span style={{ fontFamily: 'var(--font-mono)' }}>{id}</span>
       </div>
 
-      <h1 className="text-[48px] leading-none mb-sp-2">SCAN IN PROGRESS</h1>
+      <h1 className="text-[30px] md:text-[48px] leading-none mb-sp-2">SCAN IN PROGRESS</h1>
       <p className="text-[14px] uppercase tracking-[1px] text-rb-fg/60 mb-sp-5">
         Auto-updates every 3 seconds
       </p>
@@ -158,7 +158,7 @@ export default function ScanProgressPage() {
             href="/scan/new"
             className="mt-sp-3 inline-flex items-center gap-[8px] underline text-rb-link text-[14px] uppercase tracking-[1px]"
           >
-            Start a new scan →
+            Start a new scan -->
           </Link>
         </div>
       )}

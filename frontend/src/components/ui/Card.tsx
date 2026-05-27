@@ -1,5 +1,5 @@
 /**
- * RawBlock Card — square, thick border, theme-aware.
+ * RawBlock Card - square, thick border, theme-aware.
  * variant: 'default' (3px) | 'elevated' (5px)
  */
 

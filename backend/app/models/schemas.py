@@ -12,6 +12,7 @@ class ScanCreate(BaseModel):
 class ScanResponse(BaseModel):
     id: str
     status: str = "pending"
+    archived: bool = False
     config: dict[str, Any] | None = None
     prompt_text: str | None = None
     prompt_tokens_est: int | None = None
@@ -24,6 +25,10 @@ class ScanResponse(BaseModel):
     error_message: str | None = None
     created: str = ""
     updated: str = ""
+
+
+class ScanArchive(BaseModel):
+    archived: bool
 
 
 class ScanStatus(BaseModel):

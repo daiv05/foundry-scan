@@ -1,7 +1,7 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Archivo_Black, Work_Sans, Space_Mono } from 'next/font/google'
 import './globals.css'
-import Sidebar from '@/components/Sidebar'
+import Shell from '@/components/Shell'
 
 const archivoBlack = Archivo_Black({
   subsets: ['latin'],
@@ -21,6 +21,11 @@ const spaceMono = Space_Mono({
   variable: '--font-mono',
 })
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
+
 export const metadata: Metadata = {
   title: 'FoundryScan',
   description: 'Micro-SaaS opportunity discovery platform',
@@ -30,7 +35,7 @@ export const metadata: Metadata = {
   },
 }
 
-// Runs before React hydration — avoids flash of wrong theme.
+// Runs before React hydration - avoids flash of wrong theme.
 const themeInitScript = `
 (() => {
   try {
@@ -50,12 +55,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="bg-rb-bg text-rb-fg antialiased">
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 min-w-0 overflow-y-auto bg-rb-bg">
-            {children}
-          </main>
-        </div>
+        <Shell>
+          {children}
+        </Shell>
       </body>
     </html>
   )

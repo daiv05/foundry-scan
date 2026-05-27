@@ -1,5 +1,5 @@
 """
-Hacker News Collector — F05
+Hacker News Collector - F05
 
 Uses the public HN Firebase API (no auth required).
   https://hacker-news.firebaseio.com/v0/
@@ -28,7 +28,7 @@ from typing import Any
 import httpx
 
 from app.db import pb
-from app.services.collector.reddit import DEMAND_SIGNALS, PAIN_SIGNALS
+from app.services.collector.default_collector import DEMAND_SIGNALS, PAIN_SIGNALS
 
 logger = logging.getLogger(__name__)
 
@@ -201,7 +201,7 @@ async def _run(
         _fetch_ids(client, feed) for feed in FEEDS
     ])
 
-    # 2. Deduplicate — preserve ask/show ordering (they get priority)
+    # 2. Deduplicate - preserve ask/show ordering (they get priority)
     seen_ids: set[int] = set()
     candidate_ids: list[int] = []
     for ids in id_lists:

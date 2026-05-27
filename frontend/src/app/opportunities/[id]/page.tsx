@@ -1,28 +1,31 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { mdiCheckBold, mdiArrowLeft, mdiArrowRight } from '@mdi/js'
+import { mdiCheckBold, mdiArrowLeft, mdiArrowRight, mdiFileDocumentOutline, mdiFileOutline } from '@mdi/js'
 import { api } from '@/lib/api'
 import type { Opportunity, OpportunityStatus } from '@/lib/types'
+import { downloadOpportunity } from '@/lib/opportunityExport'
 import ScoreBar from '@/components/ScoreBar'
 import ScoreBadge from '@/components/ScoreBadge'
 import Icon from '@/components/ui/Icon'
 import { Textarea } from '@/components/ui/Input'
 
-const STATUS_ALL: OpportunityStatus[] = ['new', 'evaluating', 'building', 'discarded', 'archived']
+const STATUS_ALL: OpportunityStatus[] = ['new', 'saved', 'evaluating', 'building', 'discarded', 'archived']
 
 const STATUS_STYLES: Record<OpportunityStatus, { bg: string; border: string; text: string }> = {
-  new:        { bg: 'bg-rb-bg',    border: 'border-rb-fg',   text: 'text-rb-fg' },
-  evaluating: { bg: 'bg-rb-warning', border: 'border-rb-fg',  text: 'text-black' },
-  discarded:  { bg: 'bg-rb-error', border: 'border-rb-fg',  text: 'text-white' },
-  building:   { bg: 'bg-rb-success', border: 'border-rb-fg',  text: 'text-white' },
-  archived:   { bg: 'bg-rb-sunken', border: 'border-rb-fg',  text: 'text-rb-fg' },
+  new:        { bg: 'bg-rb-bg',      border: 'border-rb-fg',  text: 'text-rb-fg'  },
+  saved:      { bg: 'bg-rb-link',    border: 'border-rb-fg',  text: 'text-white'  },
+  evaluating: { bg: 'bg-rb-warning', border: 'border-rb-fg',  text: 'text-black'  },
+  building:   { bg: 'bg-rb-success', border: 'border-rb-fg',  text: 'text-white'  },
+  discarded:  { bg: 'bg-rb-error',   border: 'border-rb-fg',  text: 'text-white'  },
+  archived:   { bg: 'bg-rb-sunken',  border: 'border-rb-fg',  text: 'text-rb-fg'  },
 }
 
 export default function OpportunityDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const router = useRouter()
   const [opp, setOpp] = useState<Opportunity | null>(null)
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
@@ -63,7 +66,12 @@ export default function OpportunityDetailPage() {
     <div className="p-sp-5 max-w-[860px] mx-auto space-y-sp-5">
       {/* Breadcrumb */}
       <div className="flex items-center gap-[8px] text-[12px] uppercase tracking-[1px]">
-        <Link href="/opportunities" className="underline hover:text-rb-link">Opportunities</Link>
+        <button
+          onClick={() => router.back()}
+          className="underline hover:text-rb-link inline-flex items-center gap-[4px] cursor-pointer"
+        >
+          <Icon path={mdiArrowLeft} size={12} /> Opportunities
+        </button>
         <span>/</span>
         <span className="truncate">{opp.name ?? id}</span>
       </div>
@@ -79,7 +87,7 @@ export default function OpportunityDetailPage() {
               #{opp.rank}
             </span>
           )}
-          <h1 className="text-[48px] leading-none flex-1 min-w-0 break-words">{opp.name?.toUpperCase()}</h1>
+          <h1 className="text-[28px] md:text-[48px] leading-none flex-1 min-w-0 break-words">{opp.name?.toUpperCase()}</h1>
           {opp.score != null && <ScoreBadge score={opp.score} size="md" />}
         </div>
         <p className="text-[16px] leading-relaxed mt-sp-2">{opp.problem}</p>
@@ -224,12 +232,29 @@ export default function OpportunityDetailPage() {
       </div>
 
       <div className="flex items-center gap-sp-4 text-[12px] uppercase tracking-[1px] border-t-[3px] border-rb-fg pt-sp-3 flex-wrap">
-        <Link href="/opportunities" className="inline-flex items-center gap-[6px] underline hover:text-rb-link">
+        <button
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-[6px] underline hover:text-rb-link cursor-pointer"
+        >
           <Icon path={mdiArrowLeft} size={14} /> All opportunities
-        </Link>
+        </button>
         <Link href={`/scan/${opp.scan}/report`} className="inline-flex items-center gap-[6px] underline hover:text-rb-link">
           View scan report <Icon path={mdiArrowRight} size={14} />
         </Link>
+        <div className="ml-auto flex gap-sp-3">
+          <button
+            onClick={() => downloadOpportunity(opp, 'md')}
+            className="inline-flex items-center gap-[6px] border-[3px] border-rb-fg px-sp-3 py-[8px] hover:bg-rb-fg hover:text-rb-bg cursor-pointer"
+          >
+            <Icon path={mdiFileDocumentOutline} size={14} /> .MD
+          </button>
+          <button
+            onClick={() => downloadOpportunity(opp, 'txt')}
+            className="inline-flex items-center gap-[6px] border-[3px] border-rb-fg px-sp-3 py-[8px] hover:bg-rb-fg hover:text-rb-bg cursor-pointer"
+          >
+            <Icon path={mdiFileOutline} size={14} /> .TXT
+          </button>
+        </div>
       </div>
     </div>
   )

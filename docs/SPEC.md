@@ -1,121 +1,114 @@
-# SaaS Scout — Especificacion Tecnica
-
-> **Herramienta personal y privada** para buscar oportunidades de micro-SaaS automaticamente. Investiga internet, detecta oportunidades con evidencia real y genera reportes cuantificados.
->
-> **No es un SaaS:** es una herramienta privada de un solo usuario. Los SaaS reales son los que eventualmente se construyan a partir de las ideas que esta herramienta descubra.
->
-> **Modelo de analisis manual:** la app automatiza recoleccion, limpieza y clustering. El analisis con LLM se hace pegando el prompt generado en Claude / ChatGPT / Gemini desde la cuenta personal del usuario, y pegando la respuesta de vuelta. Sin costos de API.
->
-> **Despliegue privado:** se aloja en una maquina personal (laptop, NAS, homelab) y se expone via Cloudflare Tunnel + Cloudflare Access para acceso remoto seguro solo del propietario.
+# FoundryScan - Technical Specification
 
 ---
 
-## 1. Vision del producto
+## 1. Product Vision
 
-Una herramienta personal que automatice el proceso de descubrir nichos de micro-SaaS con evidencia real, evitando los riesgos clasicos: ideas genericas, falta de datos, intuicion sin respaldo.
+A personal tool that automates the process of discovering micro-SaaS niches with real evidence, avoiding classic risks: generic ideas, lack of data, and unsupported intuition.
 
-Flujo de uso esperado:
+Expected user flow:
 
-1. Lanzar un scan ocasionalmente (semanal, mensual, cuando aparezca tiempo libre)
-2. La app recolecta y procesa datos automaticamente (~3 minutos)
-3. Copiar el prompt generado en Claude/ChatGPT desde la cuenta personal
-4. Pegar la respuesta de vuelta
-5. Revisar el reporte, marcar las ideas interesantes como "evaluating" o "building"
-6. Si una idea pasa el filtro personal → construir el SaaS real (proyecto separado)
-
----
-
-## 2. Usuario objetivo
-
-**Un solo usuario: el propietario de la app.**
-
-No hay multi-usuario, ni invitaciones, ni planes, ni billing. Cualquier complejidad relacionada a esto queda fuera del alcance.
+1. Launch a scan occasionally (weekly, monthly, when free time appears).
+2. The app collects and processes data automatically (~3 minutes).
+3. Copy the generated prompt into Claude/ChatGPT from a personal account.
+4. Paste the response back into the app.
+5. Review the report, marking interesting ideas as "evaluating" or "building".
+6. If an idea passes the personal filter --> build the real SaaS (separate project).
 
 ---
 
-## 3. Arquitectura general
+## 2. Target User
 
-```
+**A single user: the app owner.**
+
+There is no multi-user functionality, no invitations, no subscription plans, and no billing. Any complexity related to this is out of scope.
+
+---
+
+## 3. General Architecture
+
+```text
 ┌──────────────────────────────────────────────────────────┐
-│                      Internet                            │
-└────────────────┬─────────────────────────────────────────┘
-                 │ Cloudflare Tunnel + Access (auth Zero Trust)
-                 ▼
-┌──────────────────────────────────────────────────────────┐
-│              Maquina personal (laptop / NAS)             │
+│                         Machine                          │
 │                                                          │
-│  ┌──────────────────────────────────────────────────┐   │
-│  │            FRONTEND (Next.js)                     │   │
-│  │  Dashboard / Config / Prompt / Response / Report  │   │
-│  └─────────────────────┬────────────────────────────┘   │
-│                        │ REST                            │
-│  ┌─────────────────────▼────────────────────────────┐   │
-│  │           BACKEND (Python / FastAPI)              │   │
+│  ┌──────────────────────────────────────────────────┐    │
+│  │            FRONTEND (Next.js  :7110)             │    │
+│  │  Dashboard / Config / Prompt / Response / Report │    │
+│  └─────────────────────┬────────────────────────────┘    │
+│                        │ REST /api/*                     │
+│  ┌─────────────────────▼─────────────────────────────┐   │
+│  │         BACKEND (Python / FastAPI  :7120)         │   │
 │  │                                                   │   │
-│  │  Collector → Processor → PromptBuilder            │   │
+│  │  Collector --> Processor --> PromptBuilder        │   │
 │  │                                ↓                  │   │
-│  │                       [manual LLM externo]        │   │
+│  │                       [manual external LLM]       │   │
 │  │                                ↓                  │   │
 │  │                         ResponseParser            │   │
-│  └─────────────────────┬────────────────────────────┘   │
+│  └─────────────────────┬─────────────────────────────┘   │
 │                        │                                 │
-│  ┌─────────────────────▼────────────────────────────┐   │
-│  │           PocketBase (SQLite)                     │   │
+│  ┌─────────────────────▼─────────────────────────────┐   │
+│  │        PocketBase (SQLite  :7130)                 │   │
 │  │  scans / opportunities / raw_data / configs       │   │
-│  └──────────────────────────────────────────────────┘   │
+│  └───────────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────────┘
+
 ```
 
-El scan se "pausa" entre `PromptBuilder` y `ResponseParser` mientras el usuario interactua con el LLM externo en otra pestana.
+The scan is "paused" between `PromptBuilder` and `ResponseParser` while the user interacts with the external LLM in another tab.
 
 ---
 
-## 4. Stack tecnologico
+## 4. Tech Stack
 
-| Capa          | Tecnologia                  | Justificacion                          |
-| ------------- | --------------------------- | -------------------------------------- |
-| Frontend      | Next.js + Tailwind CSS      | UI moderna, dev rapido                 |
-| Backend       | Python 3.11+ / FastAPI      | Ecosistema de scraping y datos         |
-| Base de datos | PocketBase (SQLite)         | Single binary, sin servicios externos  |
-| Auth de app   | **Cloudflare Access**       | Zero Trust antes de tocar la app       |
-| LLM           | **Manual** (Claude/ChatGPT) | Sin API key, usa cuenta personal       |
-| Acceso remoto | **Cloudflare Tunnel**       | Sin IP publica, sin abrir puertos      |
-| Scheduling    | APScheduler                 | Cron interno del backend               |
-| Clustering    | scikit-learn                | TF-IDF + KMeans local                  |
-| Reddit        | Playwright (scraping)       | Sin credenciales, `old.reddit.com`     |
-| Trends        | PyTrends + Playwright fallback | Google Trends (sin SerpAPI)         |
+| Layer      | Technology                     | Justification                        |
+| ---------- | ------------------------------ | ------------------------------------ |
+| Frontend   | Next.js 16 + Tailwind CSS v4   | Modern UI, fast development          |
+| Backend    | Python 3.11+ / FastAPI         | Data and scraping ecosystem          |
+| Database   | PocketBase (SQLite)            | Single binary, no external services  |
+| LLM        | **Manual** (Claude/ChatGPT)    | No API key, uses personal account    |
+| Scheduling | asyncio background task        | Internal backend cleanup             |
+| Clustering | scikit-learn                   | TF-IDF + Local KMeans                |
+| Reddit     | Playwright (scraping)          | No credentials, `old.reddit.com`     |
+| Trends     | PyTrends + Playwright fallback | Google Trends without SerpAPI        |
+| Container  | Docker Compose                 | A single `docker compose up`         |
+| Design     | RawBlock (brutalist)           | Black / Work Sans / Space Mono fonts |
 
-**No incluye:** Vercel, Railway, hosting publico, registro de usuarios, sistema de pagos, emails transaccionales.
+**Does not include:** Vercel, Railway, public hosting, user registration, payment systems, transactional emails, Cloudflare Tunnel/Access.
 
 ---
 
-## 5. Modulos del backend
+## 5. Backend Modules
 
 ### 5.1 Collector Module
 
-Recolecta datos crudos de fuentes externas.
+Collects raw data from external sources.
 
 #### 5.1.1 Reddit Collector
-- **Libreria:** Playwright (scraping de `old.reddit.com`, sin credenciales)
-- **Subreddits por defecto:** r/SaaS, r/Entrepreneur, r/smallbusiness, r/freelance, r/webdev
-- **Subreddits configurables** desde la app
 
-**Keywords de dolor:**
-```
+- **Library:** Playwright (scraping `old.reddit.com`, without API credentials).
+- **Rate limiting:** Configurable delay between requests + exponential backoff (max 3 retries, 30/60/120 s) upon rate-limit.
+- **Default subreddits:** r/SaaS, r/Entrepreneur, r/smallbusiness, r/freelance, r/webdev.
+- **Configurable subreddits** from the app (Settings --> Scan Defaults).
+
+**Pain keywords:**
+
+```text
 pain, workflow, manual, expensive, spreadsheet, automation,
 hate this tool, waste time, repetitive, tedious, frustrated,
 broken, annoying, slow, overpriced
 ```
 
-**Keywords de demanda real (willingness-to-pay):**
-```
+**Real demand keywords (willingness-to-pay):**
+
+```text
 I'd pay for, shut up and take my money, is there a tool that,
 looking for a solution, willing to pay, I need something that,
 does anyone know a tool, recommendation for, take my money,
 would pay good money
 ```
 
-**Output por post:**
+**Output per post:**
+
 ```json
 {
   "source": "reddit",
@@ -133,88 +126,93 @@ would pay good money
 ```
 
 #### 5.1.2 Hacker News Collector
-- API publica, sin autenticacion
-- Top stories, New stories, Ask HN, Show HN
-- Filtro: posts con 5+ puntos relacionados a SaaS, automatizacion
+
+- Public API, no authentication.
+- Top stories, New stories, Ask HN, Show HN.
+- Filter: posts with 5+ points related to SaaS, automation.
 
 #### 5.1.3 Trends Collector
-- Primario: PyTrends
-- Fallback: Playwright (scraping de trends.google.com)
-- Fallback automatico si PyTrends falla (sin `SERPAPI_KEY`)
+
+- **Primary:** PyTrends (unofficial Google Trends Python client, without credentials).
+- **Fallback:** Playwright scraping of `trends.google.com/trending` if PyTrends fails.
+- If both fail: scan continues without trends data (source marked "none").
 
 #### 5.1.4 Product Hunt Collector
-- API GraphQL con OAuth
-- Rol: filtro de competencia y saturacion exclusivamente
+
+- GraphQL API with OAuth (`PRODUCTHUNT_TOKEN` in `.env`).
+- Role: strictly for competition and saturation filtering.
+- If the token is not configured: skipped without breaking the scan.
 
 ---
 
 ### 5.2 Processor Module
 
-Transforma datos crudos en input limpio para el LLM externo.
+Transforms raw data into clean input for the external LLM.
 
-#### 5.2.1 Limpieza
-- Posts con menos de 10 palabras: descartar
-- Spam (links excesivos, auto-promocion): descartar
-- Normalizacion de texto
-- Deduplicacion de posts similares
+#### 5.2.1 Cleaning
+
+- Posts with fewer than 10 words: discarded.
+- Spam (excessive links, self-promotion): discarded.
+- Text normalization.
+- Deduplication of similar posts (cosine similarity ≥ 0.85).
 
 #### 5.2.2 Clustering
-- TF-IDF + KMeans (scikit-learn)
-- Numero de clusters: automatico via silhouette score, entre 3-15 (K_MIN=3, K_MAX=15)
-- Deduplicacion previa via similitud coseno ≥ 0.85
 
-#### 5.2.3 Deteccion de senales
+- TF-IDF + KMeans (scikit-learn).
+- Number of clusters: automatic via silhouette score, between **3-15** (K_MIN=3, K_MAX=15).
 
-| Tipo            | Peso |
-| --------------- | ---- |
-| Pain signal     | 1x   |
-| Demand signal   | 3x   |
-| High engagement | 1.5x |
-| Ask HN post     | 2x   |
+#### 5.2.3 Signal Detection
 
-#### 5.2.4 Resumenes por cluster
+| Type            | Weight |
+| --------------- | ------ |
+| Pain signal     | 1x     |
+| Demand signal   | 3x     |
+| High engagement | 1.5x   |
+| Ask HN post     | 2x     |
 
-1-2 parrafos por cluster: tema, conteos, senales, frases representativas (sin copiar posts enteros).
+#### 5.2.4 Summaries per cluster
+
+1-2 paragraphs per cluster: theme, counts, signals, representative phrases (without copying full posts).
 
 ---
 
 ### 5.3 PromptBuilder Module
 
-Construye un prompt completo y autocontenido listo para pegar en cualquier LLM externo.
+Builds a complete, self-contained prompt ready to paste into any external LLM.
 
-#### 5.3.1 Responsabilidades
+#### 5.3.1 Responsibilities
 
-- Tomar clusters procesados + datos de validacion
-- Generar prompt con instrucciones estrictas de formato de respuesta JSON
-- Estimar tokens y advertir si excede limites comunes
-- No requiere `submission_token` (uso personal, sin links compartibles)
+- Take processed clusters + validation data.
+- Generate a prompt with strict JSON response format instructions.
+- Estimate tokens and warn if it exceeds common limits.
+- Cap the prompt to a safe maximum if it is too large.
 
-#### 5.3.2 Estructura del prompt generado
+#### 5.3.2 Generated Prompt Structure
 
-```
-=== CONTEXTO ===
-Eres un analista de mercado especializado en micro-SaaS.
-Vas a recibir datos procesados de Reddit, Hacker News, Google Trends
-y Product Hunt sobre nichos potenciales.
+````text
+=== CONTEXT ===
+You are a market analyst specializing in micro-SaaS.
+You will receive processed data from Reddit, Hacker News, Google Trends
+and Product Hunt about potential niches.
 
-=== DATOS ===
-[clusters con resumen, post_count, demand_signals, pain_signals,
+=== DATA ===
+[clusters with summary, post_count, demand_signals, pain_signals,
  trend_data, competition]
 
-=== INSTRUCCIONES ===
-Para cada oportunidad genera:
-- nombre, problema, evidencia con numeros
-- scoring 1-10 en 4 criterios (pain 30%, trend 20%, competencia 25%, MVP 25%)
-- score total ponderado
-- target user, MVP features, monetizacion, build time
-- razonamiento
+=== INSTRUCTIONS ===
+For each opportunity generate:
+- name, problem, evidence with numbers
+- scoring 1-10 on 4 criteria (pain 30%, trend 20%, competition 25%, MVP 25%)
+- total weighted score
+- target user, MVP features, monetization, build time
+- reasoning
 
-Filtra: descarta AI chatbots genericos, AI wrappers, AI note apps,
-AI coding assistants, ideas tipo "Uber para X" sin evidencia.
+Filter: discard generic AI chatbots, AI wrappers, AI note apps,
+AI coding assistants, "Uber for X" style ideas without evidence.
 
-=== FORMATO DE RESPUESTA (CRITICO) ===
-Responde EXCLUSIVAMENTE con un bloque JSON valido dentro de ```json
-con la siguiente estructura exacta:
+=== RESPONSE FORMAT (CRITICAL) ===
+Respond EXCLUSIVELY with a valid JSON block inside ```json
+with the exact following structure:
 
 ```json
 {
@@ -239,475 +237,459 @@ con la siguiente estructura exacta:
     }
   ]
 }
+````
+
 ```
 
-No incluyas texto fuera del bloque JSON. No agregues comentarios.
+Do not include text outside the JSON block. Do not add comments.
+
 ```
 
-#### 5.3.3 Estimacion de tokens
+#### 5.3.3 Token Estimation
 
-| Tamano del prompt | Modelo recomendado                          |
-| ----------------- | ------------------------------------------- |
-| < 8K tokens       | Cualquier LLM moderno                       |
-| 8K - 32K          | Claude Sonnet/Opus, GPT-4, Gemini Pro       |
-| 32K - 100K        | Claude (cualquiera), Gemini 1.5+            |
-| > 100K            | Advertir y ofrecer modo "comprimido"        |
-
-Si el prompt es muy grande, ofrecer comprimir resumenes.
+| Prompt Size | Recommended Model                     |
+| ----------- | ------------------------------------- |
+| < 8K tokens | Any modern LLM                        |
+| 8K - 32K    | Claude Sonnet/Opus, GPT-4, Gemini Pro |
+| 32K - 100K  | Claude (any), Gemini 1.5+             |
+| > 100K      | Warn the user; clusters are truncated |
 
 ---
 
 ### 5.4 ResponseParser Module
 
-Recibe la respuesta pegada y la convierte en oportunidades estructuradas.
+Receives the pasted response and converts it into structured opportunities.
 
-#### 5.4.1 Pipeline de parseo
+#### 5.4.1 Parsing Pipeline
 
-1. Extraer bloque JSON ```` ```json ... ``` ```` ; fallback: primer `{ ... }` balanceado
-2. Reparar JSON malformado (trailing commas, comillas simples, comentarios `//`)
-3. Validar schema con Pydantic
-4. Validar valores: scores en [1, 10], rank unico, campos requeridos
-5. **Recalcular score ponderado en backend** (no confiar en el total que envio el LLM)
-6. Insertar oportunidades vinculadas al `scan_id`
+1. Extract JSON block ` ```json ... ``` ` ; fallback: first balanced `{ ... }`
+2. Repair malformed JSON (trailing commas, single quotes, comments `//`)
+3. Validate schema with Pydantic
+4. Validate values: scores in [1, 10], unique rank, required fields
+5. **Recalculate weighted score in backend** (do not rely on the total sent by the LLM)
+6. Insert opportunities linked to `scan_id`
 
-#### 5.4.2 Manejo de errores
+#### 5.4.2 Error Handling
 
-| Error                              | Accion                                       |
-| ---------------------------------- | -------------------------------------------- |
-| No se encuentra bloque JSON        | Mostrar instrucciones de formato + retry     |
-| JSON invalido                      | Intentar reparacion; si falla, retry         |
-| Schema invalido (campos faltantes) | Mostrar diff de lo que falta + retry         |
-| Score fuera de rango               | Auto-clamp a [1, 10] + advertencia visible   |
-| Cero oportunidades                 | Pedir confirmacion antes de guardar          |
+| Error                           | Action                               |
+| ------------------------------- | ------------------------------------ |
+| JSON block not found            | Show formatting instructions + retry |
+| Invalid JSON                    | Attempt repair; if it fails, retry   |
+| Invalid schema (missing fields) | Show diff of missing fields + retry  |
 
-#### 5.4.3 Modo asistido
+Score out of range | Auto-clamp to [1, 10] + visible warning |
 
-Si el parseo falla, ofrecer editor JSON con validacion en vivo.
+Zero attempts | Prompt for confirmation before saving |
+
+#### 5.4.3 Assisted Mode
+
+If parsing fails, offer a JSON editor with live validation and the `/retry` endpoint.
 
 ---
 
-## 6. Base de datos (PocketBase / SQLite)
+## 6. Database (PocketBase / SQLite)
 
-### 6.1 Auth: simplificado
+### 6.1 Auth: Unique admin
 
-Como el acceso a la app esta protegido por Cloudflare Access, PocketBase Auth se usa solo como capa interna minima.
+**Only one option:** Fixed administrator user created in initial setup:
 
-**Opciones:**
+```bash
+./pocketbase superuser create admin@alcsaas.dev <password>
+```
 
-- **A) Sin auth de PocketBase:** todas las collections con regla abierta `@request.headers.X-Cf-Access-Authenticated-User-Email != ""`. La identidad del usuario viene del header que Cloudflare Access inyecta.
-- **B) Single admin user:** un solo usuario administrador creado en setup inicial (`./pocketbase superuser create email password`). El backend FastAPI usa estas credenciales para hablar con PocketBase server-side.
+The FastAPI backend uses these credentials to communicate with PocketBase server-side (via `PB_ADMIN_EMAIL` / `PB_ADMIN_PASSWORD`).
 
-**Recomendado: opcion B**, con un solo usuario fijo creado en el setup. Mas simple y desacoplado de Cloudflare.
-
-No existe collection `users` con multiples filas. No hay registro publico. No hay reset de password via email.
+There is no `users` collection. There is no public registry. Password reset via email is not available.
 
 ### 6.2 Collection: scans
 
-| Campo               | Tipo      | Notas                                     |
-| ------------------- | --------- | ----------------------------------------- |
-| id                  | text      | PK                                        |
-| status              | select    | ver estados abajo                         |
-| config              | json      | configuracion del scan                    |
-| prompt_text         | text      | prompt generado                           |
-| prompt_tokens_est   | number    | estimacion de tokens                      |
-| llm_response_raw    | text      | respuesta cruda pegada                    |
-| llm_used            | text      | etiqueta opcional ("Claude Opus 4.7")     |
-| started_at          | date      |                                           |
-| processed_at        | date      | cuando termino el processor               |
-| submitted_at        | date      | cuando se pego la respuesta               |
-| completed_at        | date      |                                           |
-| error_message       | text      |                                           |
+| Field | Type | Notes |
 
-**Estados:** `pending` | `collecting` | `processing` | `awaiting_llm_input` | `parsing` | `completed` | `failed`
+| ------------------- | --------- | ----------------------------------------- |
+
+| id | text | PK |
+
+| status | select | see statuses below |
+
+| config | json | scan configuration |
+
+| prompt_text | text | max 2M characters - generated prompt |
+| prompt_tokens_est | number | token estimation |
+| llm_response_raw | text | max 2M chars - pasted raw response |
+| llm_used | text | optional tag ("Claude Opus 4.7") |
+| started_at | date | |
+| processed_at | date | when the processor finishes |
+| submitted_at | date | when the answer was pasted |
+| completed_at | date | |
+| error_message | text | |
+
+**States:** `pending` | `collecting` | `processing` | `awaiting_llm_input` | `parsing` | `completed` | `failed`
 
 ### 6.3 Collection: opportunities
 
-| Campo            | Tipo      | Notas                                  |
-| ---------------- | --------- | -------------------------------------- |
-| id               | text      | PK                                     |
-| scan             | relation  | → scans (cascade delete)               |
-| rank             | number    |                                        |
-| score            | number    | 1.0 - 10.0                             |
-| name             | text      |                                        |
-| problem          | text      |                                        |
-| evidence         | json      |                                        |
-| scoring          | json      | 4 criterios                            |
-| target_user      | text      |                                        |
-| mvp_features     | json      |                                        |
-| monetization     | text      |                                        |
-| build_time       | text      |                                        |
-| reasoning        | text      |                                        |
-| user_status      | select    | new / evaluating / discarded / building / archived |
-| notes            | text      | notas personales sobre la idea          |
-| created          | autodate  |                                        |
+| Field        | Type         | Notes                                              |
+| ------------ | ------------ | -------------------------------------------------- |
+| id           | text         | PK                                                 |
+| scan         | relationship | --> scans (cascade delete)                         |
+| rank         | number       |                                                    |
+| score        | number       | 1.0 - 10.0                                         |
+| name         | text         |                                                    |
+| problem      | text         |                                                    |
+| evidence     | json         |                                                    |
+| scoring      | json         | 4 criteria                                         |
+| target_user  | text         |                                                    |
+| mvp_features | json         |                                                    |
+| monetization | text         |                                                    |
+| build_time   | text         |                                                    |
+| reasoning    | text         |                                                    |
+| user_status  | select       | new / evaluating / discarded / building / archived |
+| notes        | text         | personal notes about the idea                      |
+| created      | autodate     |                                                    |
 
 ### 6.4 Collection: raw_data
 
-| Campo        | Tipo      | Notas                          |
-| ------------ | --------- | ------------------------------ |
-| id           | text      | PK                             |
-| scan         | relation  | → scans (cascade delete)       |
-| source       | select    | reddit / hackernews / trends / producthunt |
-| data         | json      | payload crudo                  |
-| collected_at | autodate  |                                |
+| Field        | Type         | Notes                                      |
+| ------------ | ------------ | ------------------------------------------ |
+| id           | text         | PK                                         |
+| scan         | relationship | --> scans (cascade delete)                 |
+| source       | select       | reddit / hackernews / trends / producthunt |
+| data         | json         | raw payload                                |
+| collected_at | autodate     |                                            |
 
 ### 6.5 Collection: scan_configs
 
-Templates de configuracion reutilizables.
+Reusable configuration templates (default subreddits, etc.).
 
-| Campo      | Tipo      |
-| ---------- | --------- |
-| id         | text      |
-| name       | text      |
-| config     | json      |
-| is_default | bool      |
-| created    | autodate  |
+| Field      | Type     |
+| ---------- | -------- |
+| id         | text     |
+| name       | text     |
+| config     | json     |
+| is_default | bool     |
+| created    | autodate |
 
 ### 6.6 Indices
 
 ```
-scans:           (status), (created)
-opportunities:   (scan), (user_status), (score DESC)
-raw_data:        (scan, source)
+scans: (status), (created)
+opportunities: (scan), (user_status), (score DESC)
+raw_data: (scan, source)
 ```
 
-Sin columna `user` en ninguna collection: la app es de un solo usuario.
+No `user` column in any collection: the app is a single user.
 
 ---
 
-## 7. API REST (FastAPI sobre PocketBase)
+## 7. REST API (FastAPI over PocketBase)
 
-El backend FastAPI orquesta el pipeline. Para CRUD simple usa el SDK de PocketBase con credenciales del admin user. Para operaciones complejas expone endpoints propios.
+The FastAPI backend orchestrates the pipeline. For simple CRUD, it uses the PocketBase SDK with admin user credentials. For complex operations, it exposes its own endpoints.
 
 ### 7.1 Endpoints
 
 #### Scans
 
-| Metodo | Ruta                          | Descripcion                                |
-| ------ | ----------------------------- | ------------------------------------------ |
-| POST   | /api/scans                    | Crear y lanzar (collect + process)         |
-| GET    | /api/scans                    | Listar scans                               |
-| GET    | /api/scans/{id}               | Detalle                                    |
-| GET    | /api/scans/{id}/status        | Estado actual                              |
-| DELETE | /api/scans/{id}               | Eliminar scan y datos asociados            |
+| Method | Route                  | Description                           |
+| ------ | ---------------------- | ------------------------------------- |
+| POST   | /api/scans             | Create and launch (collect + process) |
+| GET    | /api/scans             | List scans                            |
+| GET    | /api/scans/{id}        | Details                               |
+| GET    | /api/scans/{id}/status | Current status                        |
+| DELETE | /api/scans/{id}        | Delete scan and associated data       |
 
-#### Prompt y respuesta manual
+#### Prompt and Manual Response
 
-| Metodo | Ruta                                  | Descripcion                                |
-| ------ | ------------------------------------- | ------------------------------------------ |
-| GET    | /api/scans/{id}/prompt                | Devuelve el prompt listo para copiar       |
-| POST   | /api/scans/{id}/response              | Recibe la respuesta pegada                 |
-| POST   | /api/scans/{id}/response/retry        | Reintentar parseo                          |
-| GET    | /api/scans/{id}/response/raw          | Ver respuesta cruda guardada               |
+| Method | Route                          | Description                       |
+| ------ | ------------------------------ | --------------------------------- |
+| GET    | /api/scans/{id}/prompt         | Returns the prompt ready to copy  |
+| POST   | /api/scans/{id}/response       | Receives the pasted response      |
+| POST   | /api/scans/{id}/response/retry | Retry parsing with saved response |
+| GET    | /api/scans/{id}/response/raw   | View saved raw response           |
 
 **Request POST /api/scans/{id}/response:**
-```json
+
+````json
 {
   "response_text": "```json\n{ \"opportunities\": [...] }\n```",
   "llm_used": "Claude Opus 4.7"
 }
-```
+````
 
 #### Opportunities
 
-| Metodo | Ruta                              | Descripcion                          |
-| ------ | --------------------------------- | ------------------------------------ |
-| GET    | /api/scans/{id}/opportunities     | Oportunidades de un scan             |
-| GET    | /api/opportunities                | Todas las oportunidades              |
-| PATCH  | /api/opportunities/{id}           | Actualizar estado o notas            |
-| GET    | /api/opportunities/new            | Nuevas vs scans previos              |
+| Method | Path                          | Description                    |
+| ------ | ----------------------------- | ------------------------------ |
+| GET    | /api/scans/{id}/opportunities | Opportunities from a scan      |
+| GET    | /api/opportunities            | All opportunities (filterable) |
+| GET    | /api/opportunities/{id}       | Opportunity details            |
+| PATCH  | /api/opportunities/{id}       | Update status or notes         |
 
-#### Configs y export
+#### Configs, Settings, and Export
 
-| Metodo | Ruta                                  | Descripcion                  |
-| ------ | ------------------------------------- | ---------------------------- |
-| POST   | /api/configs                          | Guardar template             |
-| GET    | /api/configs                          | Listar templates             |
-| PUT    | /api/configs/{id}                     | Actualizar                   |
-| DELETE | /api/configs/{id}                     | Eliminar                     |
-| GET    | /api/scans/{id}/export/markdown       | Exportar reporte MD          |
-| GET    | /api/scans/{id}/export/prompt.txt     | Descargar prompt .txt        |
+| Method | Path                              | Description                            |
+| ------ | --------------------------------- | -------------------------------------- |
+| POST   | /api/configs                      | Save template                          |
+| GET    | /api/configs                      | List templates                         |
+| PUT    | /api/configs/{id}                 | Update                                 |
+| DELETE | /api/configs/{id}                 | Delete                                 |
+| GET    | /api/settings/status              | Source and environment variable status |
+| GET    | /api/scans/{id}/export/markdown   | Export MD report                       |
+| GET    | /api/scans/{id}/export/prompt.txt | Download prompt .txt                   |
 
-### 7.2 Autenticacion
+### 7.2 Authentication
 
-**Externa (Cloudflare Access):** cualquier request al frontend o `/api/*` debe pasar primero por Cloudflare Access. Esto es transparente para la app — el browser maneja el flow de Access automaticamente.
+There is no app authentication: the tool is for local use. The backend accepts requests from any source on the local network.
 
-**Interna (frontend ↔ backend):** opcional. Como ya esta protegido por Access, puede dejarse abierto. Si se quiere doble factor, validar el header `Cf-Access-Authenticated-User-Email` en FastAPI middleware.
-
-**Backend ↔ PocketBase:** credenciales del admin user almacenadas en variables de entorno del backend.
+**Backend ↔ PocketBase:** Admin user credentials in environment variables (`PB_ADMIN_EMAIL`, `PB_ADMIN_PASSWORD`).
 
 ---
 
 ## 8. Frontend (Next.js)
 
-### 8.1 Paginas
+### 8.1 Pages
 
-| Ruta                       | Pagina                | Descripcion                                |
-| -------------------------- | --------------------- | ------------------------------------------ |
-| /                          | **Dashboard**         | Scans recientes, top opportunities         |
-| /scan/new                  | Nuevo Scan            | Configurar y lanzar                        |
-| /scan/[id]                 | Detalle Scan          | Progreso, prompt o reporte segun estado    |
-| /scan/[id]/prompt          | **Prompt Viewer**     | Prompt listo para copiar                   |
-| /scan/[id]/response        | **Response Paster**   | Textarea para pegar respuesta              |
-| /scan/[id]/report          | Reporte               | Reporte final                              |
-| /opportunities             | Listado               | Filtros y estados                          |
-| /opportunities/[id]        | Detalle               | Detalle + notas personales                 |
-| /settings                  | Configuracion         | API keys (Reddit, SerpAPI), templates      |
+| Path                | Page               | Description                                      |
+| ------------------- | ------------------ | ------------------------------------------------ |
+| /                   | **Dashboard**      | Recent Scans, Top Opportunities                  |
+| /scan/new           | New Scan           | Configure Sources and Launch                     |
+| /scan/[id]          | Scan Details       | Progress with Real-Time Steps                    |
+| /scan/[id]/prompt   | **Prompt Viewer**  | Prompt Ready to Copy                             |
+| /scan/[id]/response | **Response Paste** | Text Area to Paste Response                      |
+| /scan/[id]/report   | Report             | Ranked Opportunities from the Scan               |
+| /opportunities      | List               | Filters by Status and Minimum Score              |
+| /opportunities/[id] | Details            | Details + Scoring + Personal Notes               |
+| /settings           | Settings           | Source Status, Environment Variables, Subreddits |
 
-**No hay `/login` ni `/signup`.** Cloudflare Access maneja la autenticacion antes de que el browser cargue la app. La home page (`/`) es directamente el dashboard.
+**There is no `/login` or `/signup`.** The home page (`/`) is directly the dashboard.
 
-### 8.2 Componentes clave
+### 8.2 Key Components
 
-**ScanProgress** — barra con estados (collecting → processing → awaiting input → parsing → completed)
+**ScanProgress** - visual steps: collecting --> processing awaiting input parsing completed
 
 **PromptViewer**:
-- Bloque de codigo con el prompt completo
-- Boton **"Copy to clipboard"**
-- Contador de tokens estimado con badge de color
-- Tabla de modelos recomendados segun tamano
-- Boton de descarga `.txt`
-- Links rapidos a [claude.ai/new](https://claude.ai/new), [chatgpt.com](https://chatgpt.com), [gemini.google.com](https://gemini.google.com)
-- Instrucciones: "1. Copia. 2. Pega en tu LLM. 3. Vuelve aqui con la respuesta."
+
+- Code block with the complete prompt
+- **"Copy to clipboard"** button
+- Estimated token counter with color badge
+- Table of recommended models by size
+- Download button (`.txt`)
+- Quick links to claude.ai/new, chatgpt.com, gemini.google.com
+- Instructions: "1. Copy. 2. Paste into your LLM. 3. Return here with the answer."
 
 **ResponsePaster**:
-- Textarea grande
-- Auto-deteccion de bloque JSON al pegar
-- Preview en vivo del JSON detectado (check verde / X rojo)
-- Selector opcional: "Que LLM usaste?"
-- Boton **"Parse & Save"**
-- Modo editor inline si el parseo falla
 
-**OpportunityCard** — nombre, score (badge de color), problema, tags de evidencia, boton de estado.
+- Large text area
+- Automatic JSON block detection upon pasting
+- Live preview of detected JSON (green checkmark / red X)
+- Optional selector: "Which LLM did you use?"
 
-**ScoreBar** — 4 barras + total. Verde 8+, amarillo 5-7, rojo <5.
+- **"Parse & Save"** button
+- Inline editor mode if parsing fails
 
-**TrendBadge** — flecha arriba/horizontal/abajo.
+**OpportunityCard** - Name, score (color badge), problem, evidence tags, status chip.
 
-**CompetitionMeter** — semaforo de saturacion.
+**ScoreBadge / ScoreBar** - Traffic light: green ≥8, yellow ≥5, red <5.
 
-**NotesPanel** — campo de notas personales en cada oportunidad (lo que pienso, decisiones, links a investigacion adicional).
+**StatusChip** - Active / Warning / Error / Default.
 
-### 8.3 UX del scan completo
+**NotesPanel** - Personal notes field for each opportunity.
+
+### 8.3 Design System (RawBlock)
+
+Brutalist style: no border radius, no shadows, thick borders (3-5px). Semantic tokens for dark mode.
+
+| Token      | Light   | Dark    |
+| ---------- | ------- | ------- |
+| rb-fg      | #000000 | #FFFFFF |
+| rb-bg      | #FFFFFF | #000000 |
+| rb-sunken  | #F0F0F0 | #1A1A1A |
+| rb-success | #008000 | #008000 |
+| rb-warning | #FFA500 | #FFA500 |
+| rb-error   | #FF0000 | #FF0000 |
+| rb-link    | #0000FF | #0000FF |
+
+Dark mode via class `.dark` in `<html>`, persisted in `localStorage`.
+
+### 8.4 Full Scan UX
 
 ```
-[1] Lanzar scan desde /scan/new
-       │
-       ▼
-[2] ScanProgress en /scan/[id]: collecting → processing
-       │
-       ▼ (polling o realtime de PocketBase)
-[3] PromptViewer: "Tu prompt esta listo. Pegalo en tu LLM."
-       │
-       ▼ "I have a response"
-       │
-       ▼
-[4] ResponsePaster: pegar respuesta del LLM
-       │
-       ▼ "Parse & Save"
-       │
-       ▼
-[5] /scan/[id]/report con oportunidades rankeadas
+[1] Launch scan from /scan/new
+      |
+      ▼
+[2] ScanProgress in /scan/[id]: collecting --> processing
+      |
+      ▼ (polling every 3s)
+[3] PromptViewer: "Your prompt is ready. Paste it into your LLM."
+        |
+        ▼ "I have a response"
+        |
+        ▼
+[4] ResponsePaste: paste response from LLM
+        |
+        ▼ "Parse & Save"
+        |
+        ▼
+[5] /scan/[id]/report with ranked opportunities
 ```
 
 ---
 
-## 9. Pipeline de ejecucion de un scan
+## 9. Scan execution pipeline
 
 ```
-[Lanzar scan]
-       │
-       ▼
-  scan.status = 'collecting'
-       │
-       ├── Reddit Collector (async)
-       ├── HN Collector (async)
-       ├── Trends Collector (async)
-       └── PH Collector (async)
-       │
-       ▼
-  scan.status = 'processing'
-       │
-       ├── Limpieza
-       ├── Clustering (TF-IDF + KMeans)
-       ├── Deteccion de senales
-       └── Resumenes
-       │
-       ▼
-  PromptBuilder genera prompt
-  scan.status = 'awaiting_llm_input'
-       │
-       ▼
-  [PAUSA — usuario externo trabaja en LLM]
-       │
-       ▼
-  POST /api/scans/{id}/response
-  scan.status = 'parsing'
-       │
-       ├── Extraer + reparar JSON
-       ├── Validar schema
-       ├── Recalcular scores
-       └── Insertar opportunities
-       │
-       ▼
-  scan.status = 'completed'
+[Launch scan]
+│
+▼
+scan.status = 'collecting' ← timeout 10 min
+│
+├── Reddit Collector (async, Playwright)
+├── HN Collector (async, public API)
+├── Trends Collector (async, PyTrends --> Playwright fallback)
+└── PH Collector (async, GraphQL)
+│
+▼
+scan.status = 'processing'
+│
+├── Cleaning + cosine deduplication
+├── Clustering (TF-IDF + KMeans, 3-15 clusters)
+├── Signal Detection
+└── Cluster Summaries
+│
+▼
+PromptBuilder generates prompt
+scan.status = 'awaiting_llm_input'
+│
+▼
+[PAUSE - external user working in LLM]
+│
+▼
+POST /api/scans/{id}/response
+scan.status = 'parsing'
+│
+├── Extract + Repair JSON
+├── Validate Schema
+├── Recalculate Scores
+└── Insert Opportunities
+│
+▼
+scan.status = 'completed'
 ```
 
-Tiempos:
-- Collecting + processing: **2-4 minutos**
-- Espera del usuario: **variable** (minutos a dias)
-- Parsing: **< 5 segundos**
+Expected times:
+
+- Collecting + processing: **2-4 minutes**
+- User wait: **Variable** (minutes to days)
+- Parsing: **< 5 seconds**
 
 ---
 
-## 10. Scans programados
+## 10. Scheduled Scans
 
-APScheduler en el backend dispara scans en horarios configurables (ej: lunes a las 9am).
+> **Not implemented in MVP.** Future functionality.
 
-El pipeline corre automaticamente hasta `awaiting_llm_input`. En lugar de email, el dashboard muestra una notificacion persistente:
+APScheduler in the backend would trigger scans at configurable times (e.g., Monday at 9 AM). The pipeline would run automatically until `awaiting_llm_input`. The dashboard would display a persistent notification.
 
-> **Tu scan semanal esta listo.** Pegalo en tu LLM para continuar.
-
-Como es una app personal, la notificacion en el dashboard es suficiente. No hay sistema de emails.
-
-Si pasan 30 dias sin que el usuario complete el scan, el `raw_data` se elimina automaticamente (el prompt sigue accesible).
+If **30 days** pass without the user completing the scan at `awaiting_llm_input`, the `raw_data` is automatically deleted via `cleanup_service` (the prompt remains accessible).
 
 ---
 
-## 11. Manejo de errores
+## 11. Error Handling
 
-| Escenario                     | Comportamiento                                          |
-| ----------------------------- | ------------------------------------------------------- |
-| Reddit API rate limit         | Retry con backoff exponencial (max 3)                   |
-| PyTrends falla                | Fallback automatico a SerpAPI                            |
-| SerpAPI cuota agotada         | Omitir trends, marcar fuente como "sin datos"            |
-| Product Hunt API caida        | Omitir competencia, marcar fuente como "sin datos"       |
-| Scan excede 10 min en collect | Timeout, status = 'failed'                              |
-| Prompt muy grande (>100K)     | Ofrecer modo comprimido                                  |
-| Respuesta LLM no parseable    | Retry asistido con editor JSON                            |
-| Texto sin JSON                | Instrucciones + ejemplo de formato                       |
+| Scenario                       | Behavior                                                |
+| ------------------------------ | ------------------------------------------------------- |
+| Reddit rate limit              | Retry with exponential backoff (max 3, 30/60/120 s)     |
+| PyTrends fails                 | Automatic fallback to Playwright scraper                |
+| Playwright fallback fails      | Skip trends, scan continues with other sources          |
+| Product Hunt token missing     | Skip, scan continues without competitor data            |
+| Single source fails            | Non-fatal, scan continues with available sources        |
+| Scan exceeds 10 min in collect | `asyncio.wait_for` timeout --> status = `failed`        |
+| Prompt too large (>100K)       | Less relevant clusters are automatically truncated      |
+| LLM response not parsable      | 422 + JSON editor; scan remains in `awaiting_llm_input` |
+| Text without JSON              | Formatting instructions + retry button                  |
+| React page error               | `error.tsx` per segment with RETRY button               |
+| Path not found                 | `not-found.tsx` with link to dashboard                  |
+| raw_data > 30 days stashed     | `cleanup_service` deletes it daily                      |
 
 ---
 
-## 12. Seguridad
+## 12. Security
 
-Como es una app personal expuesta solo via Cloudflare Tunnel + Access, el modelo de amenaza es muy distinto al de un SaaS publico:
+The app is for local/private use. It has no public attack surface.
 
-- **Acceso externo:** unicamente via Cloudflare Access con login (Google, GitHub, email pin). Cualquier request sin token valido es bloqueado por Cloudflare antes de llegar a la app.
-- **Sin puertos abiertos en la maquina:** el Tunnel mantiene una conexion saliente a Cloudflare; no se abre ningun puerto en el firewall del usuario.
-- **Sin IP publica:** el Tunnel oculta la IP de la maquina host.
-- **API keys de Reddit/SerpAPI/Product Hunt:** en variables de entorno del backend, no en la DB. Configuradas una sola vez.
-- **PocketBase admin:** un solo usuario con password fuerte. Admin UI accesible solo en la red local o a traves del tunnel.
-- **Backups:** snapshot diario del directorio `pb_data/` a almacenamiento externo (Backblaze B2, S3, NAS).
-- **No se almacena texto crudo de Reddit completo:** solo resumenes y metadata. Reduce superficie de datos personales.
+- **No open ports to the outside:** Services listen on `127.0.0.1` or on the internal Docker network.
 
-**Cosas que NO necesita:**
-- Sistema de auth interno (Cloudflare Access lo cubre)
-- Rate limiting publico (no es publico)
-- CORS estricto (mismo origen tras el tunnel)
-- 2FA propio (Cloudflare Access tiene 2FA)
-- Audit log de accesos (Cloudflare logs cubren esto)
+- **API keys** (Product Hunt, etc.): in backend environment variables, never in the database or frontend.
+
+- **PocketBase admin:** a single user with a strong password. Admin UI accessible only at localhost:7130.
+
+- **No third-party CORS:** The frontend consumes `/api/*` via rewrite from Next.js to the same host.
+
+- **Backups:** Daily snapshot of the `pb_data/` directory.
+
+**Things you DON'T need:**
+
+- Internal authentication system
+- Public rate limiting (not public)
+- Custom 2FA
+- Access audit log
 
 ---
 
 ## 13. Deployment
 
-### 13.1 Topologia
+### 13.1 Topology
 
 ```
-                        Internet
-                           │
-                           ▼
-                ┌──────────────────────┐
-                │  Cloudflare edge     │
-                │  + Access (auth)     │
-                │  + Tunnel (egress)   │
-                └──────────┬───────────┘
-                           │ TLS via cloudflared
-                           ▼
-            ┌─────────────────────────────────┐
-            │   Maquina personal              │
-            │   (laptop / NAS / homelab)      │
-            │                                  │
-            │   docker-compose:                │
-            │   - cloudflared                  │
-            │   - frontend  :7110              │
-            │   - backend   :7120              │
-            │   - pocketbase:7130              │
-            │                                  │
-            │   Bind: 127.0.0.1 unicamente     │
-            └─────────────────────────────────┘
+┌──────────────────────────────────┐
+│ Personal machine                 │
+│ (laptop / NAS / homelab)         │
+│                                  │
+│ docker-compose:                  │
+│ - frontend :7110                 │
+│ - backend :7120                  │
+│ - pocketbase:7130                │
+│                                  │
+│ Access: http://localhost:7110    │
+└──────────────────────────────────┘
 ```
 
-### 13.2 docker-compose recomendado
+### 13.2 docker-compose
 
 ```yaml
 services:
-  frontend:
-    build: ./frontend
-    ports: ["127.0.0.1:7110:7110"]
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:7120
-      PORT: 7110
+frontend:
+build: ./frontend
+ports: ["127.0.0.1:7110:7110"]
+environment:
+PORT: "7110"
+NEXT_PUBLIC_API_URL: "http://localhost:7120"
+INTERNAL_API_URL: "http://backend:7120"
 
-  backend:
-    build: ./backend
-    ports: ["127.0.0.1:7120:7120"]
-    environment:
-      BACKEND_PORT: 7120
-      POCKETBASE_URL: http://pocketbase:7130
-      PB_ADMIN_EMAIL: ${PB_ADMIN_EMAIL}
-      PB_ADMIN_PASSWORD: ${PB_ADMIN_PASSWORD}
-      REDDIT_CLIENT_ID: ${REDDIT_CLIENT_ID}
-      REDDIT_CLIENT_SECRET: ${REDDIT_CLIENT_SECRET}
-      SERPAPI_KEY: ${SERPAPI_KEY}
-      PRODUCTHUNT_TOKEN: ${PRODUCTHUNT_TOKEN}
-    depends_on: [pocketbase]
+backend:
+build: ./backend
+ports: ["127.0.0.1:7120:7120"]
+env_file: ["./backend/.env"]
+depends_on: [pocketbase]
 
-  pocketbase:
-    image: pocketbase/pocketbase:latest
-    ports: ["127.0.0.1:7130:7130"]
-    command: ["serve", "--http=0.0.0.0:7130"]
-    volumes: ["./pb_data:/pb_data"]
-
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    command: tunnel run
-    environment:
-      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
-    depends_on: [frontend, backend]
+pocketbase:
+build: ./pocketbase
+ports: ["127.0.0.1:7130:7130"]
+volumes: ["./pb_data:/pb_data"]
 ```
 
-### 13.3 Configuracion del Tunnel
+> **Rebuild required:** the files are baked into the image. Always use:
+>
+> ```bash
+> docker compose build && docker compose up -d --force-recreate
+> ```
+>
+> `docker compose restart` **does** not reload the code.
 
-1. Crear tunnel en el dashboard de Cloudflare Zero Trust
-2. Configurar un hostname publico: `scout.midominio.com`
-3. Apuntar a `http://frontend:7110` (red interna del docker-compose)
-4. Habilitar **Cloudflare Access** con politica:
-   - Permitir solo email = `mi-email@personal.com`
-   - 2FA obligatorio
-5. Guardar el `TUNNEL_TOKEN` en `.env`
+### 13.3 Backups
 
-### 13.4 Rutas del tunnel
-
-Una sola entrada: `scout.midominio.com` → frontend. El frontend hace fetch a `/api/*` que el reverse-proxy interno (puede ser el mismo Next.js via `rewrites`) redirige al backend en `:7120`.
-
-Para evitar montar reverse proxy adicional, en `next.config.js`:
-
-```js
-async rewrites() {
-  return [
-    { source: '/api/:path*', destination: 'http://backend:7120/api/:path*' },
-  ];
-}
-```
-
-### 13.5 Backups
-
-Cron del sistema (no APScheduler):
+System cron:
 
 ```bash
-0 3 * * * tar -czf /backups/pb_$(date +%F).tar.gz /path/to/pb_data && \
-          rclone copy /backups b2:saasscout-backups
+0 3 * * * tar -czf /backups/pb_$(date +%F).tar.gz /path/to/pb_data
 ```
 
 ---
@@ -718,13 +700,13 @@ Rango **7110-7159** para evitar colisiones con puertos comunes (3000, 5173, 8000
 
 ### 14.1 Asignacion
 
-| Servicio                    | Puerto | Bind                | Notas                              |
-| --------------------------- | ------ | ------------------- | ---------------------------------- |
-| Frontend Next.js            | 7110   | 127.0.0.1           | Dev y prod                         |
-| Backend FastAPI (uvicorn)   | 7120   | 127.0.0.1           | API REST                           |
-| PocketBase                  | 7130   | 127.0.0.1 (host)    | DB + Auth + Admin UI `/_/`         |
-| Reserva — Worker (futuro)   | 7140   | —                   | No usado                           |
-| Reserva — Otro (futuro)     | 7150   | —                   | No usado                           |
+| Servicio                  | Puerto | Bind      | Notas                      |
+| ------------------------- | ------ | --------- | -------------------------- |
+| Frontend Next.js          | 7110   | 127.0.0.1 | Dev y prod                 |
+| Backend FastAPI (uvicorn) | 7120   | 127.0.0.1 | API REST                   |
+| PocketBase                | 7130   | 127.0.0.1 | DB + Auth + Admin UI `/_/` |
+| Reserva - Worker (futuro) | 7140   | -         | No usado                   |
+| Reserva - Otro (futuro)   | 7150   | -         | No usado                   |
 
 **Regla:** ningun servicio usa `3xxx`, `5xxx`, `8xxx`, `9xxx`. Cualquier servicio nuevo se asigna en `71xx` con `+10` por servicio.
 
@@ -740,134 +722,130 @@ Rango **7110-7159** para evitar colisiones con puertos comunes (3000, 5173, 8000
 }
 ```
 
-```bash
-# backend
-uvicorn app.main:app --host 127.0.0.1 --port 7120 --reload
-```
-
-```bash
-# pocketbase
-./pocketbase serve --http=127.0.0.1:7130
-```
-
 URLs en dev:
+
 - Frontend: `http://localhost:7110`
 - API: `http://localhost:7120`
 - PocketBase admin: `http://localhost:7130/_/`
 
-### 14.3 Variables de entorno (dev)
+### 14.3 Variables de entorno
 
-**`frontend/.env.local`:**
+**`backend/.env`:**
+
+```
+BACKEND_HOST=0.0.0.0
+BACKEND_PORT=7120
+POCKETBASE_URL=http://pocketbase:7130
+FRONTEND_ORIGIN=http://localhost:7110
+PB_ADMIN_EMAIL=admin@alcsaas.dev
+PB_ADMIN_PASSWORD=<password-fuerte>
+PRODUCTHUNT_TOKEN=<opcional>
+COLLECTOR_REQUEST_DELAY_MS=2000
+REDDIT_FETCH_COMMENTS=false
+TRENDS_GEO=US
+TRENDS_TIMEFRAME=today 3-m
+```
+
+**`frontend/.env.local` (solo dev fuera de Docker):**
+
 ```
 PORT=7110
 NEXT_PUBLIC_API_URL=http://localhost:7120
-NEXT_PUBLIC_PB_URL=http://localhost:7130
+INTERNAL_API_URL=http://localhost:7120
 ```
+
+---
+
+## 14. Port Configuration
+
+Range **7110-7159** to avoid collisions with common ports (3000, 5173, 8000, 8080, 8090, 5432, 6379).
+
+### 14.1 Port Assignment
+
+| Service                   | Port | Bind      | Notes                      |
+| ------------------------- | ---- | --------- | -------------------------- |
+| Frontend Next.js          | 7110 | 127.0.0.1 | Dev & Prod                 |
+| Backend FastAPI (uvicorn) | 7120 | 127.0.0.1 | REST API                   |
+| PocketBase                | 7130 | 127.0.0.1 | DB + Auth + Admin UI `/_/` |
+
+### 14.2 Local Development
+
+```json
+// frontend/package.json
+{
+  "scripts": {
+    "dev": "next dev -p 7110",
+    "start": "next start -p 7110"
+  }
+}
+```
+
+URLs in dev:
+
+- Frontend: `http://localhost:7110`
+- API: `http://localhost:7120`
+- PocketBase admin: `http://localhost:7130/_/`
+
+### 14.3 Variables of around
 
 **`backend/.env`:**
-```
-BACKEND_HOST=127.0.0.1
-BACKEND_PORT=7120
-POCKETBASE_URL=http://127.0.0.1:7130
-FRONTEND_ORIGIN=http://localhost:7110
-PB_ADMIN_EMAIL=admin@local
-PB_ADMIN_PASSWORD=<...>
-REDDIT_CLIENT_ID=<...>
-REDDIT_CLIENT_SECRET=<...>
-SERPAPI_KEY=<...>
-PRODUCTHUNT_TOKEN=<...>
-```
 
-**PocketBase:**
 ```
-PB_HTTP=127.0.0.1:7130
-PB_DATA_DIR=./pb_data
-```
-
-### 14.4 Produccion (Cloudflare Tunnel)
-
-Los mismos puertos, pero los servicios corren dentro de `docker-compose` y se comunican por la red interna del compose (`frontend:7110`, `backend:7120`, `pocketbase:7130`). Solo `cloudflared` accede al exterior.
-
-**Variables del frontend en prod:**
-```
-NEXT_PUBLIC_API_URL=https://scout.midominio.com/api
-NEXT_PUBLIC_PB_URL=https://scout.midominio.com/pb   # solo si se expone admin UI
-PORT=7110
-```
-
-**Variables del backend en prod:**
-```
-BACKEND_HOST=0.0.0.0      # solo dentro de la red docker
+BACKEND_HOST=0.0.0.0
 BACKEND_PORT=7120
 POCKETBASE_URL=http://pocketbase:7130
-FRONTEND_ORIGIN=https://scout.midominio.com
+FRONTEND_ORIGIN=http://localhost:7110
+PB_ADMIN_EMAIL=admin@alcsaas.dev
+PB_ADMIN_PASSWORD=<strong-password>
+PRODUCTHUNT_TOKEN=<optional>
+COLLECTOR_REQUEST_DELAY_MS=2000
+REDDIT_FETCH_COMMENTS=false
+TRENDS_GEO=US
+TRENDS_TIMEFRAME=today 3-m
 ```
 
-### 14.5 Firewall del host
+**`frontend/.env.local` (only dev outside Docker):**
 
-```bash
-ufw allow 22/tcp
-ufw deny 7110:7159/tcp
-ufw enable
 ```
-
-No se abre 80 ni 443 — el unico canal de entrada es Cloudflare Tunnel, que es saliente.
-
-### 14.6 Resumen
-
-| Entorno | Frontend | Backend | PocketBase | Acceso externo                        |
-| ------- | -------- | ------- | ---------- | ------------------------------------- |
-| Dev     | 7110     | 7120    | 7130       | Solo localhost                        |
-| Prod    | 7110     | 7120    | 7130       | Cloudflare Tunnel + Access (1 usuario)|
+PORT=7110
+NEXT_PUBLIC_API_URL=http://localhost:7120
+INTERNAL_API_URL=http://localhost:7120
+```
 
 ---
 
-## 15. MVP — Alcance minimo
+## 15. MVP - Scope
 
-### Incluido
-- [ ] Setup de Cloudflare Tunnel + Access
-- [ ] Configurar scan (subreddits, terminos, categorias, keywords)
-- [ ] **Reddit Collector** (PRAW)
-- [ ] **Hacker News Collector** (API publica)
-- [ ] **Trends Collector** (PyTrends + SerpAPI fallback)
-- [ ] **Product Hunt Collector** (GraphQL)
-- [ ] Processor: limpieza, clustering TF-IDF, deteccion de senales, resumenes
-- [ ] PromptBuilder con estimacion de tokens
-- [ ] PromptViewer con copy to clipboard
-- [ ] ResponsePaster con auto-deteccion de JSON
-- [ ] ResponseParser robusto con modo editor
-- [ ] Vista de reporte con oportunidades rankeadas
-- [ ] Notas personales por oportunidad
-- [ ] Marcar oportunidades como evaluating / building / discarded
-- [ ] Export a Markdown
+### Implemented (F01–F17)
 
-### Excluido del MVP
-- Scans programados (APScheduler)
-- Templates de configuracion reutilizables
-- Comparacion entre corridas (delta de oportunidades nuevas)
-- Compresion de prompt para casos > 100K tokens
+- [x] Docker Compose Setup (F01)
+- [x] PocketBase Schema with JS migrations (F02)
+- [x] FastAPI Backend + CRUD endpoints (F03)
+- [x] Reddit Collector - Playwright, without credentials (F04)
+- [x] Hacker News Collector (F05)
+- [x] Trends Collector - PyTrends + Playwright fallback (F06)
+- [x] Product Hunt Collector - GraphQL (F07)
+- [x] Processor: cleaning, TF-IDF clustering, signals, summaries (F08)
+- [x] PromptBuilder with token estimation (F09)
+- [x] PromptViewer with copy to clipboard and .txt download (F09 UI)
+- [x] ResponsePaster with auto JSON detection (F10)
+- [x] Robust ResponseParser with editor mode and retry (F10)
+- [x] Frontend shell with Sidebar, dark mode, RawBlock design system (F11)
+- [x] Dashboard with recent scans and top opportunities (F12)
+- [x] Scan flow UI: new --> progress --> prompt --> response --> report (F13)
+- [x] Opportunities UI: list with filters, detail with notes and status (F14)
+- [x] Export to Markdown (F15)
+- [x] Settings: source status, env vars, default subreddits (F16)
+- [x] Error handling: collecting timeout, raw_data cleanup, error boundaries (F17)
 
-### Explicitamente fuera de alcance (no se hara nunca)
-- Multi-usuario
-- Planes de pago / billing
-- Registro publico
-- Emails transaccionales
-- API publica para terceros
-- App movil
+
+### Explicitly Out of Scope (Will not be done)
+
+- Multi-user
+- Paid plans / billing
+- Public registration
+- Transactional emails
+- Public API for third parties
+- Mobile app
 
 ---
-
-## 16. Metricas personales de exito
-
-Las metricas no son de adopcion ni de negocio — son de utilidad personal:
-
-| Metrica                                       | Objetivo                |
-| --------------------------------------------- | ----------------------- |
-| Scans completados en 3 meses                  | 10+                     |
-| Oportunidades guardadas con status "building" | 1-3                     |
-| Una idea efectivamente construida como SaaS   | 1 en 6-12 meses         |
-| Tasa de parseo exitoso al primer intento      | > 80%                   |
-| Tiempo de scan (collect + process)            | < 3 min                 |
-| Tiempo total de uso por sesion                | < 20 min para revisar reporte |
-
-El exito real no es de la app sino de los **SaaS que se construyan** a partir de las ideas descubiertas.

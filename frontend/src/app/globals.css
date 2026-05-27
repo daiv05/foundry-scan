@@ -7,7 +7,7 @@
 /* ── RawBlock Design Tokens ──────────────────────────────────────────── */
 
 @theme {
-  /* Semantic colors — auto-invert via .dark class on <html> */
+  /* Semantic colors - auto-invert via .dark class on <html> */
   --color-rb-fg:               #000000;   /* primary: text, borders, inverted bg */
   --color-rb-bg:               #FFFFFF;   /* primary background */
   --color-rb-sunken:           #F0F0F0;   /* input fill, panel inset */
@@ -15,7 +15,7 @@
   --color-rb-disabled-bg:      #F5F5F5;
   --color-rb-disabled-border:  #CCCCCC;
 
-  /* Constants — same in both themes */
+  /* Constants - same in both themes */
   --color-rb-link:     #0000FF;
   --color-rb-success:  #008000;
   --color-rb-warning:  #FFA500;
@@ -36,7 +36,7 @@
   --font-body:     "Work Sans", system-ui, sans-serif;
   --font-mono:     "Space Mono", ui-monospace, monospace;
 
-  /* No radius, no shadow — globally */
+  /* No radius, no shadow - globally */
   --radius-none: 0px;
 }
 
@@ -51,7 +51,7 @@
   --color-rb-disabled-border: #333333;
 }
 
-/* ── Global resets — enforce RawBlock principles ─────────────────────── */
+/* ── Global resets - enforce RawBlock principles ─────────────────────── */
 
 html {
   background: var(--color-rb-bg);
@@ -86,13 +86,32 @@ h4, .rb-h4 { font-family: var(--font-body);     font-size: 22px; line-height: 1.
   line-height: 1.5;
 }
 
-/* Selection — inverted */
+/* Selection - inverted */
 ::selection {
   background: var(--color-rb-fg);
   color:      var(--color-rb-bg);
 }
 
-/* Scrollbar — flat */
+/* Scrollbar - flat */
 ::-webkit-scrollbar           { width: 12px; height: 12px; }
 ::-webkit-scrollbar-track     { background: var(--color-rb-bg); }
 ::-webkit-scrollbar-thumb     { background: var(--color-rb-fg); border: 3px solid var(--color-rb-bg); }
+
+/* ── Responsive spacing overrides ───────────────────────────────────────── */
+
+/* On mobile (<768px): tighten outer page padding */
+@media (max-width: 767px) {
+  :root, .dark {
+    --spacing-sp-5: 20px;
+    --spacing-sp-6: 40px;
+    --spacing-sp-7: 56px;
+    --spacing-sp-8: 80px;
+  }
+}
+
+/* Mobile headline scaling */
+@media (max-width: 767px) {
+  h1, .rb-h1 { font-size: 40px; }
+  h2, .rb-h2 { font-size: 30px; }
+  h3, .rb-h3 { font-size: 24px; }
+}

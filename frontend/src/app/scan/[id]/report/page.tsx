@@ -6,7 +6,7 @@ import StatusBadge from '@/components/StatusBadge'
 import Icon from '@/components/ui/Icon'
 
 function fmtDate(iso?: string) {
-  if (!iso) return '—'
+  if (!iso) return '-'
   return new Date(iso).toLocaleString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
@@ -44,7 +44,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
       <div className="flex items-end justify-between gap-sp-3 flex-wrap pb-sp-4 border-b-[3px] border-rb-fg">
         <div>
           <div className="flex items-center gap-sp-3 flex-wrap">
-            <h1 className="text-[48px] leading-none">SCAN REPORT</h1>
+            <h1 className="text-[30px] md:text-[48px] leading-none">SCAN REPORT</h1>
             <StatusBadge status={scan.status} />
           </div>
           <p
@@ -77,9 +77,9 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
       <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-[3px] border-rb-fg">
         {[
           { label: 'OPPORTUNITIES', value: String(opps.length) },
-          { label: 'LLM USED',      value: scan.llm_used || '—' },
+          { label: 'LLM USED',      value: scan.llm_used || '-' },
           { label: 'COMPLETED',     value: fmtDate(scan.completed_at) },
-          { label: 'TOKENS EST.',   value: scan.prompt_tokens_est ? `~${scan.prompt_tokens_est.toLocaleString()}` : '—' },
+          { label: 'TOKENS EST.',   value: scan.prompt_tokens_est ? `~${scan.prompt_tokens_est.toLocaleString()}` : '-' },
         ].map(({ label, value }, i) => (
           <div
             key={label}
@@ -111,7 +111,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
               href={`/scan/${id}/prompt`}
               className="text-rb-link underline text-[14px] uppercase tracking-[1px]"
             >
-              Go to prompt →
+              Go to prompt -->
             </Link>
           )}
         </div>
@@ -121,7 +121,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
             className="text-[24px] uppercase mb-sp-3 leading-none"
             style={{ fontFamily: 'var(--font-headline)' }}
           >
-            OPPORTUNITIES — RANKED BY SCORE
+            OPPORTUNITIES - RANKED BY SCORE
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-sp-3">
             {opps.map(opp => (

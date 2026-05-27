@@ -1,5 +1,5 @@
 /**
- * RawBlock Chips — theme-aware:
+ * RawBlock Chips - theme-aware:
  *  - Chip (filter): toggle filter chip (active = inverted)
  *  - StatusChip: semantic status (active/warning/error/default)
  */
@@ -32,7 +32,7 @@ export function Chip({ active, className = '', children, ...rest }: ChipProps) {
 
 // ── Status Chip ──────────────────────────────────────────────────────────
 
-type StatusKind = 'active' | 'warning' | 'error' | 'default'
+type StatusKind = 'active' | 'warning' | 'error' | 'default' | 'info'
 
 interface StatusChipProps {
   kind?: StatusKind
@@ -44,6 +44,7 @@ const STATUS_STYLES: Record<StatusKind, string> = {
   active:  'border-rb-success text-rb-success',
   warning: 'border-rb-warning text-rb-warning',
   error:   'border-rb-error text-rb-error',
+  info:    'border-rb-link text-rb-link',
   default: 'border-rb-fg text-rb-fg',
 }
 

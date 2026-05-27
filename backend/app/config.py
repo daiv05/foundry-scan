@@ -11,11 +11,11 @@ class Settings(BaseSettings):
     pb_admin_email: str = "admin@alcsaas.dev"
     pb_admin_password: str = "changeme"
 
-    # Reddit scraper — no credentials needed
-    reddit_request_delay_ms: int = 2000
+    # Collector — rate-limit polite delay
+    collector_request_delay_ms: int = 2000
     reddit_fetch_comments: bool = False
 
-    # Trends (PyTrends primary, Playwright fallback — no API keys needed)
+    # Trends (PyTrends primary, Playwright fallback - no API keys needed)
     trends_geo: str = ""
     trends_timeframe: str = "today 3-m"
 

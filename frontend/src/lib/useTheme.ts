@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from 'react'
 type Theme = 'light' | 'dark'
 
 /**
- * useTheme — reads/writes the `.dark` class on <html>, persists to localStorage.
+ * useTheme - reads/writes the `.dark` class on <html>, persists to localStorage.
  * The initial value is read from the DOM (set by the init script in <head>)
  * to avoid hydration mismatches.
  */

@@ -1,97 +1,105 @@
-# F02 — Database Schema (PocketBase)
+# F02 - Database Schema (PocketBase)
 
-## Objetivo
+## Objective
 
-Crear las collections de PocketBase con sus campos, relaciones e indices.
+Create PocketBase collections with their fields, relationships, and indexes.
 
-## Alcance
+## Scope
 
 ### Auth
 
-Single admin user creado en setup inicial (`./pocketbase superuser create email password`). No hay collection `users` con multiples filas, ni registro publico, ni reset de password via email.
+Single admin user created in initial setup (`./pocketbase superuser create email password`). There is no `users` collection with multiple rows, no public registration, and no password reset via email.
 
 ### Collection: scans
 
-| Campo             | Tipo   | Notas                                  |
+| Field | Type | Notes |
+
 | ----------------- | ------ | -------------------------------------- |
-| id                | text   | PK                                     |
-| status            | select | pending / collecting / processing / awaiting_llm_input / parsing / completed / failed |
-| config            | json   | configuracion del scan                 |
-| prompt_text       | text   | prompt generado                        |
-| prompt_tokens_est | number | estimacion de tokens                   |
-| llm_response_raw  | text   | respuesta cruda pegada                 |
-| llm_used          | text   | etiqueta opcional ("Claude Opus 4.7")  |
-| started_at        | date   |                                        |
-| processed_at      | date   | cuando termino el processor            |
-| submitted_at      | date   | cuando se pego la respuesta            |
-| completed_at      | date   |                                        |
-| error_message     | text   |                                        |
+
+| id | text | PK |
+
+| status | select | pending / collecting / processing / awaiting_llm_input / parsing / completed / failed |
+
+| config | json | scan configuration |
+
+| prompt_text | text | generated prompt |
+
+| prompt_tokens_est | number | token estimate |
+
+| llm_response_raw | text | raw pasted response |
+
+| llm_used | text | optional tag ("Claude Opus 4.7") |
+| started_at | date | |
+| processed_at | date | when the processor finishes |
+| submitted_at | date | when the answer was pasted |
+| completed_at | date | |
+| error_message | text | |
 
 ### Collection: opportunities
 
-| Campo        | Tipo     | Notas                                       |
+| Field | Type | Notes |
 | ------------ | -------- | ------------------------------------------- |
-| id           | text     | PK                                          |
-| scan         | relation | → scans (cascade delete)                    |
-| rank         | number   |                                             |
-| score        | number   | 1.0 - 10.0                                  |
-| name         | text     |                                             |
-| problem      | text     |                                             |
-| evidence     | json     |                                             |
-| scoring      | json     | 4 criterios (pain, trend, competencia, MVP) |
-| target_user  | text     |                                             |
-| mvp_features | json     |                                             |
-| monetization | text     |                                             |
-| build_time   | text     |                                             |
-| reasoning    | text     |                                             |
-| user_status  | select   | new / evaluating / discarded / building / archived |
-| notes        | text     | notas personales sobre la idea              |
-| created      | autodate |                                             |
+| id | text | PK |
+| scan | relationship | --> scans (cascade delete) |
+| rank | number | |
+| score | number | 1.0 - 10.0 |
+| name | text | |
+| problem | text | |
+| evidence | json | |
+| scoring | json | 4 criteria (pain, trend, competition, MVP) |
+| target_user | text | |
+| mvp_features | json | |
+| monetization | text | |
+| build_time | text | |
+| reasoning | text | |
+| user_status | select | new / evaluating / discarded / building / archived |
+| notes | text | personal notes about the idea |
+| created | autodate | |
 
 ### Collection: raw_data
 
-| Campo        | Tipo     | Notas                                          |
-| ------------ | -------- | ---------------------------------------------- |
-| id           | text     | PK                                             |
-| scan         | relation | → scans (cascade delete)                       |
-| source       | select   | reddit / hackernews / trends / producthunt     |
-| data         | json     | payload crudo                                  |
-| collected_at | autodate |                                                |
+| Field | Type | Notes |
+| ------------ | -------- | ------------------------------------------- |
+| id | text | PK |
+| scan | relationship | --> scans (cascade delete) |
+| source | select | reddit / hackernews / trends / producthunt |
+| data | json | raw payload |
+| collected_at | autodate | |
 
 ### Collection: scan_configs
 
-| Campo      | Tipo     |
+| Field | Type |
 | ---------- | -------- |
-| id         | text     |
-| name       | text     |
-| config     | json     |
-| is_default | bool     |
-| created    | autodate |
+| id | text |
+| name | text |
+| config | json |
+| is_default | bool |
+| created | autodate |
 
-### Indices
+### Indexes
 
 ```
-scans:         (status), (created)
+scans: (status), (created)
 opportunities: (scan), (user_status), (score DESC)
-raw_data:      (scan, source)
+raw_data: (scan, source)
 ```
 
-Sin columna `user` en ninguna collection.
+No `user` column in any collection.
 
-> **Nota de implementación:** Los campos `prompt_text` y `llm_response_raw` tienen el límite aumentado a 2 000 000 caracteres via migration `3_increase_text_limits.js` (PocketBase v0.38 limita text fields a 5 000 chars por defecto).
+> **Implementation Note:** The `prompt_text` and `llm_response_raw` fields have their character limits increased to 2,000,000 via migration `3_increase_text_limits.js` (PocketBase v0.38 limits text fields to 5,000 characters by default).
 
-## Criterios de aceptacion
+## Acceptance Criteria
 
-- [x] Las 4 collections existen en PocketBase con campos correctos
-- [x] Relaciones scan → opportunities y scan → raw_data con cascade delete funcionan
-- [x] Indices creados
-- [x] Admin user creado y funcional
-- [x] Migration script o setup automatizado reproducible
+- [x] All 4 collections exist in PocketBase with correct fields
+- [x] Scan --> opportunities and scan --> raw_data relationships with cascade delete work
+- [x] Indexes created
+- [x] Admin user created and functional
+- [x] Reproducible migration script or automated setup
 
-## Dependencias
+## Dependencies
 
-- F01 (PocketBase corriendo)
+- F01 (PocketBase running)
 
 ## Ref SPEC
 
-Seccion 6
+Section 6

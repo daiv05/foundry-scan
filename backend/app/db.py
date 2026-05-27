@@ -113,5 +113,5 @@ class PocketBaseClient:
         resp.raise_for_status()
 
 
-# Singleton — imported by routers and main
+# Singleton - imported by routers and main
 pb = PocketBaseClient()

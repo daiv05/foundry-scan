@@ -15,8 +15,6 @@ function fmtDate(iso: string) {
 function PendingBanner({ scans }: { scans: Scan[] }) {
   const waiting = scans.filter(s => s.status === 'awaiting_llm_input')
   if (!waiting.length) return null
-  // Orange banner — text-black stays literal (best contrast on orange regardless of theme).
-  // Border + inner CTA use semantic tokens so they invert with the page.
   return (
     <div className="bg-rb-warning text-black border-[5px] border-rb-fg px-sp-4 py-sp-3 flex items-start gap-sp-3">
       <Icon path={mdiFlash} size={28} className="shrink-0 mt-[2px]" />
@@ -43,7 +41,7 @@ function PendingBanner({ scans }: { scans: Scan[] }) {
 
 export default async function DashboardPage() {
   const [scans, topOpps] = await Promise.all([
-    ssrGetScans().catch(() => []),
+    ssrGetScans({ perPage: 5, archived: false }).catch(() => []),
     ssrGetOpportunities({ perPage: 6, sort: '-score' }).catch(() => []),
   ])
 
@@ -52,7 +50,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="flex items-end justify-between gap-sp-3 flex-wrap pb-sp-4 border-b-[3px] border-rb-fg">
         <div>
-          <h1 className="text-[64px] leading-none">DASHBOARD</h1>
+          <h1 className="text-[40px] md:text-[64px] leading-none">DASHBOARD</h1>
           <p className="text-[14px] uppercase tracking-[1px] text-rb-fg/60 mt-[8px]">
             Your micro-SaaS opportunity pipeline
           </p>
@@ -69,12 +67,21 @@ export default async function DashboardPage() {
 
       {/* Recent scans */}
       <section>
-        <h3
-          className="text-[24px] uppercase mb-sp-3 leading-none"
-          style={{ fontFamily: 'var(--font-headline)' }}
-        >
-          RECENT SCANS
-        </h3>
+        <div className="flex items-end justify-between mb-sp-3">
+          <h3
+            className="text-[24px] uppercase leading-none"
+            style={{ fontFamily: 'var(--font-headline)' }}
+          >
+            RECENT SCANS
+          </h3>
+          <Link
+            href="/scans"
+            className="text-[12px] uppercase tracking-[1px] underline hover:text-rb-link"
+          >
+            View all -->
+          </Link>
+        </div>
+
         {scans.length === 0 ? (
           <div className="border-[3px] border-dashed border-rb-fg p-sp-6 text-center bg-rb-sunken">
             <Icon path={mdiRocketLaunchOutline} size={48} className="text-rb-fg mb-sp-3" />
@@ -133,7 +140,7 @@ export default async function DashboardPage() {
               href="/opportunities"
               className="text-[12px] uppercase tracking-[1px] underline hover:text-rb-link"
             >
-              View all →
+              View all -->
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-sp-3">

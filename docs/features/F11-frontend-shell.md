@@ -1,49 +1,49 @@
-# F11 — Frontend Shell & Layout
+# F11 - Frontend Shell & Layout
 
-## Objetivo
+## Objective
 
-Establecer la estructura base del frontend Next.js: layout, navegacion, routing y componentes compartidos.
+Establish the basic structure of the Next.js frontend: layout, navigation, routing, and shared components.
 
-## Alcance
+## Scope
 
-### Paginas (rutas)
+### Pages (routes)
 
-| Ruta                  | Pagina            | Descripcion                            |
-| --------------------- | ----------------- | -------------------------------------- |
-| /                     | Dashboard         | Scans recientes, top opportunities     |
-| /scan/new             | Nuevo Scan        | Configurar y lanzar                    |
-| /scan/[id]            | Detalle Scan      | Progreso, prompt o reporte segun estado|
-| /scan/[id]/prompt     | Prompt Viewer     | Prompt listo para copiar               |
-| /scan/[id]/response   | Response Paster   | Textarea para pegar respuesta          |
-| /scan/[id]/report     | Reporte           | Reporte final                          |
-| /opportunities        | Listado           | Filtros y estados                      |
-| /opportunities/[id]   | Detalle           | Detalle + notas personales             |
-| /settings             | Configuracion     | API keys, templates                    |
+| Route               | Page           | Description                                     |
+| ------------------- | -------------- | ----------------------------------------------- |
+| /                   | Dashboard      | Recent scans, top opportunities                 |
+| /scan/new           | New Scan       | Configure and launch                            |
+| /scan/[id]          | Scan Details   | Progress, prompt, or report depending on status |
+| /scan/[id]/prompt   | Prompt Viewer  | Prompt ready to copy                            |
+| /scan/[id]/response | Response Paste | Textarea to paste response                      |
+| /scan/[id]/report   | Report         | Final report                                    |
+| /opportunities      | Listing        | Filters and statuses                            |
+| /opportunities/[id] | Details        | Details + personal notes                        |
+| /settings           | Configuration  | API keys, templates                             |
 
-**No hay `/login` ni `/signup`.** Cloudflare Access maneja auth antes de cargar la app.
+**There is no `/login` or `/signup`.** Cloudflare Access handles authentication before the app loads.
 
 ### Layout
 
-- Sidebar o top nav con links a Dashboard, Opportunities, Settings
-- Sin sistema de auth/sesion en el frontend
+- Sidebar or top navigation with links to Dashboard, Opportunities, and Settings
+- No frontend authentication/session system
 
-### Tecnologia
+### Technology
 
 - Next.js (App Router)
-- Tailwind CSS para styling
-- Fetch a `/api/*` (rewrite a backend via next.config.js)
+- Tailwind CSS for styling
+- Fetch `/api/*` (rewrite to backend via next.config.js)
 
-## Criterios de aceptacion
+## Acceptance Criteria
 
-- [x] Todas las rutas existen (pueden estar vacias/placeholder)
-- [x] Layout con navegacion funcional
-- [x] Tailwind CSS configurado
-- [x] Fetch a `/api/health` funciona desde el frontend
+- [x] All routes exist (can be empty/placeholder)
+- [x] Layout with functional navigation
+- [x] Tailwind CSS configured
+- [x] Fetch `/api/health` works from the frontend
 
-## Dependencias
+## Dependencies
 
-- F01 (frontend corriendo)
+- F01 (frontend running)
 
 ## Ref SPEC
 
-Seccion 8.1
+Section 8.1

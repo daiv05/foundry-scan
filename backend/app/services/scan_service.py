@@ -1,7 +1,7 @@
 """
 Scan orchestration service.
 
-Coordinates the pipeline:  collect → process → prompt_build → (await LLM) → parse
+Coordinates the pipeline:  collect --> process --> prompt_build --> (await LLM) --> parse
 Each stage updates the scan status in PocketBase.
 """
 from __future__ import annotations
@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from app.db import pb
-from app.services.collector import hackernews, producthunt, reddit, trends
+from app.services.collector import hackernews, producthunt, default_collector, trends
 from app.services import processor, prompt_builder
 
 logger = logging.getLogger(__name__)
@@ -33,8 +33,8 @@ async def run_pipeline(scan_id: str) -> None:
     Run the full collection pipeline for a scan.
 
     Status transitions:
-      pending → collecting → processing → awaiting_llm_input
-      (on error → failed)
+      pending --> collecting --> processing --> awaiting_llm_input
+      (on error --> failed)
     """
     try:
         record = await pb.get_one("scans", scan_id)
@@ -44,25 +44,53 @@ async def run_pipeline(scan_id: str) -> None:
 
     config: dict[str, Any] = record.get("config") or {}
 
-    # ── Stage 1: Collecting ───────────────────────────────────────────────
+    # ── Stage 1: Collecting (10-minute hard timeout) ─────────────────────
     await _update_status(scan_id, "collecting")
     sources_enabled: list[str] = config.get(
         "sources", ["reddit", "hackernews", "trends", "producthunt"]
     )
 
-    collection_tasks = []
+    collection_tasks: list = []
+    task_labels:      list[str] = []
     if "reddit" in sources_enabled:
         collection_tasks.append(_run_reddit(scan_id, config))
-    # F05, F06, F07 stubs — will be added in their respective features
+        task_labels.append("reddit")
     if "hackernews" in sources_enabled:
         collection_tasks.append(_run_hackernews(scan_id, config))
+        task_labels.append("hackernews")
     if "trends" in sources_enabled:
         collection_tasks.append(_run_trends(scan_id, config))
+        task_labels.append("trends")
     if "producthunt" in sources_enabled:
         collection_tasks.append(_run_producthunt(scan_id, config))
+        task_labels.append("producthunt")
 
-    # Run all collectors concurrently; failures are caught per-source
-    await asyncio.gather(*collection_tasks, return_exceptions=True)
+    # Run all collectors concurrently; individual failures are caught per-source.
+    # A global 10-minute wall-clock timeout protects against hung collectors.
+    try:
+        results = await asyncio.wait_for(
+            asyncio.gather(*collection_tasks, return_exceptions=True),
+            timeout=600.0,
+        )
+    except asyncio.TimeoutError:
+        logger.error("[pipeline] Collecting phase timed out (>10 min) for scan=%s", scan_id)
+        await _update_status(
+            scan_id,
+            "failed",
+            "Collection timed out after 10 minutes. "
+            "Try again with fewer sources or check your network connection.",
+        )
+        return
+
+    # Log per-source failures (non-fatal - scan continues with data already collected)
+    failed_sources = [
+        label for label, r in zip(task_labels, results) if isinstance(r, Exception)
+    ]
+    if failed_sources:
+        logger.warning(
+            "[pipeline] Sources failed (non-fatal) for scan=%s: %s",
+            scan_id, failed_sources,
+        )
 
     # ── Stage 2: Processing (F08) ─────────────────────────────────────────
     await _update_status(scan_id, "processing")
@@ -99,7 +127,7 @@ async def run_pipeline(scan_id: str) -> None:
 
 async def _run_reddit(scan_id: str, config: dict[str, Any]) -> None:
     try:
-        posts = await reddit.collect(scan_id, config)
+        posts = await default_collector.collect(scan_id, config)
         logger.info("[pipeline] Reddit: %d posts collected for scan=%s", len(posts), scan_id)
     except Exception as exc:
         logger.error("[pipeline] Reddit collector failed for scan=%s: %s", scan_id, exc)
@@ -132,4 +160,4 @@ async def _run_producthunt(scan_id: str, config: dict[str, Any]) -> None:
 
 
 async def _stub_source(scan_id: str, source: str) -> None:
-    logger.info("[pipeline] %s collector not yet implemented (scan=%s) — skipping.", source, scan_id)
+    logger.info("[pipeline] %s collector not yet implemented (scan=%s) - skipping.", source, scan_id)

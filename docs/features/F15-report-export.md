@@ -1,52 +1,52 @@
-# F15 — Report & Export
+# F15 - Report & Export
 
-## Objetivo
+## Objective
 
-Vista de reporte final de un scan con oportunidades rankeadas y exportacion a Markdown.
+View the final report of a scan with ranked opportunities and export to Markdown.
 
-## Alcance
+## Scope
 
-### Pagina: /scan/[id]/report
+### Page: /scan/[id]/report
 
-Vista resumen del scan completado:
+Summary view of the completed scan:
 
-- Lista de oportunidades ordenadas por rank/score
-- OpportunityCard por cada una con acceso rapido al detalle
-- Metadata del scan: fecha, LLM usado, tiempo total, numero de oportunidades
-- Link a prompt original y respuesta cruda
+- List of opportunities sorted by rank/score
+- OpportunityCard for each opportunity with quick access to details
+- Scan metadata: date, LLM used, total time, number of opportunities
+- Link to original prompt and raw response
 
 ### Export Markdown
 
 `GET /api/scans/{id}/export/markdown`
 
-Genera un archivo `.md` con:
+Generates a `.md` file with:
 
-- Titulo y fecha del scan
-- Tabla resumen de oportunidades (rank, score, nombre, problema)
-- Detalle por oportunidad: scoring, target user, MVP features, monetizacion, build time, razonamiento
-- Metadata del scan
+- Title and date of the scan
+- Summary table of opportunities (rank, score, name, problem)
+- Details per opportunity: scoring, target user, MVP features, monetization, build time, rationale
+- Scan metadata
 
 ### Export Prompt
 
 `GET /api/scans/{id}/export/prompt.txt`
 
-Descarga el prompt generado como archivo `.txt`.
+Downloads the generated prompt as a `.txt` file.
 
-## Criterios de aceptacion
+## Acceptance Criteria
 
-- [x] Reporte muestra oportunidades rankeadas con scores
-- [x] Metadata del scan visible
-- [x] Export markdown genera un archivo .md completo y legible
-- [x] Export prompt descarga .txt
-- [x] Botones de descarga en la UI del reporte
+- [x] Report displays ranked opportunities with scores
+- [x] Scan metadata is visible
+- [x] Export Markdown generates a complete and readable .md file
+- [x] Export prompt downloads a .txt file
+- [x] Download buttons are included in the report UI
 
-## Dependencias
+## Dependencies
 
 - F11 (routing)
-- F13 (scan flow — llega a report tras completar)
-- F03 (endpoints de export)
-- F10 (oportunidades en DB)
+- F13 (scan flow - reaches the report after completion)
+- F03 (export endpoints)
+- F10 (opportunities in the database)
 
 ## Ref SPEC
 
-Seccion 8.1 (ruta /scan/[id]/report), seccion 7.1 (endpoints export)
+Section 8.1 (path /scan/[id]/report), section 7.1 (export endpoints)
