@@ -1,10 +1,22 @@
-# FoundryScan
+<p align="center">
+  <img src="frontend/public/logo.png" alt="FoundryScan" width="120" />
+</p>
 
-**Open-source micro-SaaS opportunity discovery platform.**
+<h1 align="center">FoundryScan</h1>
 
-FoundryScan turns public discussions and trend signals into ranked micro-SaaS opportunities developers can evaluate and build.
+<p align="center"><strong>Open-source micro-SaaS opportunity discovery platform.</strong></p>
 
-> No API keys required for most sources. No SaaS subscriptions. Runs entirely on your machine with Docker.
+<p align="center">
+  FoundryScan turns public discussions and trend signals into ranked micro-SaaS opportunities developers can evaluate and build.
+</p>
+
+<p align="center">
+  No API keys required for most sources &nbsp;·&nbsp; No SaaS subscriptions &nbsp;·&nbsp; Runs entirely on your machine with Docker
+</p>
+
+---
+
+![FoundryScan dashboard showing ranked opportunities with scores, status badges and scan history](docs/screenshot-dashboard.png)
 
 ---
 
