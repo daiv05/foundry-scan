@@ -47,7 +47,7 @@ Everything else works out of the box. The other variables:
 | `BACKEND_PORT` | `7120` | Port |
 | `POCKETBASE_URL` | `http://pocketbase:7130` | Internal Docker service URL - do not change for Docker |
 | `FRONTEND_ORIGIN` | `http://localhost:7110` | CORS allowed origin |
-| `COLLECTOR_REQUEST_DELAY_MS` | `1200` | Min delay between requests (ms) — increase if getting blocked |
+| `COLLECTOR_REQUEST_DELAY_MS` | `1200` | Min delay between requests (ms) - increase if getting blocked |
 | `REDDIT_FETCH_COMMENTS` | `true` | Fetch comment threads - richer data, slightly slower |
 | `TRENDS_GEO` | `US` | Google Trends country code (empty = worldwide) |
 | `TRENDS_TIMEFRAME` | `now 7-d` | Trends lookback window |

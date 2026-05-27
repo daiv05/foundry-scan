@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     pb_admin_email: str = "admin@alcsaas.dev"
     pb_admin_password: str = "changeme"
 
-    # Collector — rate-limit polite delay
+    # Collector - rate-limit polite delay
     collector_request_delay_ms: int = 2000
     reddit_fetch_comments: bool = False
 
