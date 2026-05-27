@@ -2,7 +2,7 @@
 
 **Open-source micro-SaaS opportunity discovery platform.**
 
-FoundryScan scans Reddit, Hacker News, Google Trends, and Product Hunt for pain points, frustrations, and feature gaps - then surfaces the best micro-SaaS opportunities, scored and ranked, ready for you to evaluate and build.
+FoundryScan turns public discussions and trend signals into ranked micro-SaaS opportunities developers can evaluate and build.
 
 > No API keys required for most sources. No SaaS subscriptions. Runs entirely on your machine with Docker.
 
