@@ -158,7 +158,7 @@ export default function ScanProgressPage() {
             href="/scan/new"
             className="mt-sp-3 inline-flex items-center gap-[8px] underline text-rb-link text-[14px] uppercase tracking-[1px]"
           >
-            Start a new scan -->
+            Start a new scan {'->'}
           </Link>
         </div>
       )}

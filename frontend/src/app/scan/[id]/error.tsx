@@ -50,7 +50,7 @@ export default function ScanError({
             href="/"
             className="text-[13px] uppercase tracking-[1px] underline hover:text-rb-link"
           >
-            Back to dashboard -->
+            Back to dashboard {'->'}
           </Link>
         </div>
       </div>

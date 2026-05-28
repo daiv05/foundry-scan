@@ -111,7 +111,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
               href={`/scan/${id}/prompt`}
               className="text-rb-link underline text-[14px] uppercase tracking-[1px]"
             >
-              Go to prompt -->
+              Go to prompt {'->'}
             </Link>
           )}
         </div>

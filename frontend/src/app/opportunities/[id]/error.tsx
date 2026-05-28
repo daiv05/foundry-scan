@@ -50,7 +50,7 @@ export default function OpportunityError({
             href="/opportunities"
             className="text-[13px] uppercase tracking-[1px] underline hover:text-rb-link"
           >
-            Back to opportunities -->
+            Back to opportunities {'->'}
           </Link>
         </div>
       </div>

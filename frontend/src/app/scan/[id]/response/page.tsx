@@ -169,7 +169,7 @@ export default function ResponsePasterPage() {
             onClick={() => setEditMode(true)}
             className="text-[12px] underline text-rb-link uppercase tracking-[1px]"
           >
-            Edit response manually -->
+            Edit response manually {'->'}
           </button>
         </div>
       )}

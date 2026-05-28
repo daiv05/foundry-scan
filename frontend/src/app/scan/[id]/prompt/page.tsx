@@ -170,7 +170,7 @@ export default function PromptPage() {
       <div className="flex justify-end pt-sp-2">
         <Link href={`/scan/${id}/response`}>
           <Button size="lg">
-            I HAVE THE RESPONSE --> PASTE IT
+            I HAVE THE RESPONSE {'->'} PASTE IT
             <Icon path={mdiArrowRight} size={18} />
           </Button>
         </Link>

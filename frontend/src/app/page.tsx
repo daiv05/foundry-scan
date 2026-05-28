@@ -78,7 +78,7 @@ export default async function DashboardPage() {
             href="/scans"
             className="text-[12px] uppercase tracking-[1px] underline hover:text-rb-link"
           >
-            View all -->
+            View all {'->'}
           </Link>
         </div>
 
@@ -140,7 +140,7 @@ export default async function DashboardPage() {
               href="/opportunities"
               className="text-[12px] uppercase tracking-[1px] underline hover:text-rb-link"
             >
-              View all -->
+              View all {'->'}
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-sp-3">
