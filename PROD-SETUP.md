@@ -18,7 +18,7 @@ git clone https://github.com/daiv05/foundry-scan.git
 cd foundry-scan
 
 cp backend/.env.example  backend/.env
-cp frontend/.env.local.example  frontend/.env.local
+cp frontend/.env.example  frontend/.env.local
 ```
 
 Edit `backend/.env`:
