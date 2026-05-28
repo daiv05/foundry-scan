@@ -5,7 +5,7 @@ Two deployment options are covered here:
 - **Option A - Nginx reverse proxy** - recommended for a VPS or dedicated server with a public IP
 - **Option B - Cloudflare Tunnel** - recommended when you don't have a public IP, or want zero-config TLS and Cloudflare Access authentication
 
-Both options assume the Docker Compose stack is already running on the server.
+Both options assume the Docker Compose stack is running on the server.
 
 ---
 
@@ -17,28 +17,40 @@ Both options assume the Docker Compose stack is already running on the server.
 git clone https://github.com/daiv05/foundry-scan.git
 cd foundry-scan
 
+cp .env.example          .env
 cp backend/.env.example  backend/.env
-cp frontend/.env.example  frontend/.env.local
+cp frontend/.env.example frontend/.env
 ```
 
-Edit `backend/.env`:
+### 2. Set credentials and public URLs
+
+Edit the root `.env` - used by Docker Compose to initialize the PocketBase admin account:
 
 ```bash
 PB_ADMIN_EMAIL=you@yourdomain.com
 PB_ADMIN_PASSWORD=<strong-random-password>
+```
+
+Edit `backend/.env` - used by FastAPI to authenticate against PocketBase at runtime:
+
+```bash
+PB_ADMIN_EMAIL=you@yourdomain.com        # must match root .env
+PB_ADMIN_PASSWORD=<strong-random-password>  # must match root .env
 FRONTEND_ORIGIN=https://yourdomain.com   # must match the public URL
 ```
 
-Edit `frontend/.env.local`:
+Edit `frontend/.env`:
 
 ```bash
-NEXT_PUBLIC_API_URL=https://yourdomain.com   # same domain, proxied
-NEXT_PUBLIC_PB_URL=https://yourdomain.com/pb # optional direct PB access
+NEXT_PUBLIC_API_URL=https://yourdomain.com    # same domain, proxied via /api
+NEXT_PUBLIC_PB_URL=https://yourdomain.com/pb  # optional direct PB access
 ```
 
-### 2. Start the stack (no public port exposure needed)
+> **PocketBase credentials:** the admin account is created automatically on first boot by the container entrypoint using the values from the root `.env`. The values in `backend/.env` must be identical - FastAPI uses them to authenticate every request. If you ever change the password, update both files and restart both containers (or change it via the PocketBase admin UI at `/_/` first, then update both files).
 
-The services bind to `127.0.0.1` by default in `docker-compose.yml`, so they are only reachable from the same machine. The reverse proxy or tunnel reaches them there.
+### 3. Start the stack
+
+The services bind to `127.0.0.1` by default, so they are only reachable from the same machine. The reverse proxy or tunnel reaches them locally.
 
 ```bash
 docker compose up -d --build
@@ -100,7 +112,7 @@ server {
         proxy_read_timeout 120s;
     }
 
-    # Backend API  - proxied under /api so the browser hits the same origin
+    # Backend API - proxied under /api so the browser hits the same origin
     location /api/ {
         proxy_pass         http://127.0.0.1:7120/api/;
         proxy_http_version 1.1;
@@ -149,7 +161,7 @@ sudo systemctl status certbot.timer
 
 ## Option B - Cloudflare Tunnel
 
-Cloudflare Tunnel creates an outbound-only encrypted connection from your server to Cloudflare's edge - no open ports.
+Cloudflare Tunnel creates an outbound-only encrypted connection from your server to Cloudflare's edge - no open ports required.
 
 ### Prerequisites
 
@@ -170,7 +182,7 @@ echo "deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] \
 sudo apt update && sudo apt install cloudflared
 ```
 
-Other platforms: [developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/)
+Other platforms: [developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)
 
 ### 2. Authenticate and create the tunnel
 
@@ -194,7 +206,7 @@ ingress:
   - hostname: yourdomain.com
     service: http://localhost:7110
 
-  # Backend API on a subdomain (optional - or use Nginx to proxy /api internally)
+  # Backend API on a subdomain (optional - or proxy /api via Nginx internally)
   - hostname: api.yourdomain.com
     service: http://localhost:7120
 
@@ -218,15 +230,7 @@ sudo systemctl enable cloudflared
 sudo systemctl status cloudflared
 ```
 
-### 6. Trust Cloudflare forwarded headers in the backend
-
-When using a Cloudflare Tunnel, real client IPs arrive in the `CF-Connecting-IP` header. Add to `backend/.env`:
-
-```bash
-TRUSTED_PROXIES=cloudflare
-```
-
-Also update `FRONTEND_ORIGIN` to your public URL:
+### 6. Update `FRONTEND_ORIGIN` in `backend/.env`
 
 ```bash
 FRONTEND_ORIGIN=https://yourdomain.com
@@ -242,8 +246,8 @@ docker compose up -d --force-recreate backend
 
 To require login before reaching your FoundryScan instance:
 
-1. Go to **Cloudflare Zero Trust --> Access --> Applications**
-2. Click **Add an application --> Self-hosted**
+1. Go to **Cloudflare Zero Trust → Access → Applications**
+2. Click **Add an application → Self-hosted**
 3. Set the application domain to `yourdomain.com`
 4. Configure an identity provider (GitHub, Google, email OTP, etc.)
 5. Add a policy - e.g. "Allow email ends with @yourdomain.com"

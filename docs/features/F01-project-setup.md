@@ -33,7 +33,7 @@ Port rule: range **7110-7159**, increments of +10 per service. No service uses 3
 
 ### Environmental variables
 
-**frontend/.env.local:**
+**frontend/.env:**
 ```
 PORT=7110
 NEXT_PUBLIC_API_URL=http://localhost:7120

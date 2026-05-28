@@ -27,32 +27,44 @@ cd foundry-scan
 ## 2. Configure environment files
 
 ```bash
+cp .env.example          .env
 cp backend/.env.example  backend/.env
-cp frontend/.env.local.example  frontend/.env.local
+cp frontend/.env.example frontend/.env
 ```
 
-### `backend/.env` - required changes
+### Root `.env` - PocketBase credentials
+
+This file is read by Docker Compose to initialize the PocketBase admin account on first boot.
 
 | Variable | Default | Action |
 |---|---|---|
-| `PB_ADMIN_PASSWORD` | `changeme` | **Change this** before first run |
 | `PB_ADMIN_EMAIL` | `admin@example.com` | Change if you want |
+| `PB_ADMIN_PASSWORD` | `changeme` | **Change this** |
+
+> **Important:** these values must match the same variables in `backend/.env`. The backend uses them to authenticate against PocketBase at runtime.
+
+### `backend/.env` - backend configuration
+
+| Variable | Default | Action |
+|---|---|---|
+| `PB_ADMIN_EMAIL` | `admin@example.com` | Must match root `.env` |
+| `PB_ADMIN_PASSWORD` | `changeme` | **Change this** - must match root `.env` |
 | `PRODUCTHUNT_TOKEN` | _(empty)_ | Optional - get one free at [api.producthunt.com](https://api.producthunt.com/v2/oauth/applications) |
 
-Everything else works out of the box. The other variables:
+Everything else works out of the box:
 
 | Variable | Default | Description |
 |---|---|---|
 | `BACKEND_HOST` | `0.0.0.0` | Bind address |
 | `BACKEND_PORT` | `7120` | Port |
-| `POCKETBASE_URL` | `http://pocketbase:7130` | Internal Docker service URL - do not change for Docker |
+| `POCKETBASE_URL` | `http://localhost:7130` | Overridden to `http://pocketbase:7130` by Docker Compose automatically |
 | `FRONTEND_ORIGIN` | `http://localhost:7110` | CORS allowed origin |
 | `COLLECTOR_REQUEST_DELAY_MS` | `1200` | Min delay between requests (ms) - increase if getting blocked |
 | `REDDIT_FETCH_COMMENTS` | `true` | Fetch comment threads - richer data, slightly slower |
 | `TRENDS_GEO` | `US` | Google Trends country code (empty = worldwide) |
 | `TRENDS_TIMEFRAME` | `now 7-d` | Trends lookback window |
 
-### `frontend/.env.local`
+### `frontend/.env`
 
 | Variable | Default | Description |
 |---|---|---|
@@ -75,6 +87,12 @@ First build downloads Playwright Chromium (~170 MB) and all Python/Node dependen
 | Frontend | http://localhost:7110 |
 | Backend API docs | http://localhost:7120/docs |
 | PocketBase admin | http://localhost:7130/_/ |
+
+### PocketBase first boot
+
+On first run, the PocketBase container automatically creates the admin account using `PB_ADMIN_EMAIL` and `PB_ADMIN_PASSWORD` from the root `.env`. This is idempotent - if the account already exists, the step is silently skipped.
+
+If you change the password after the first run, update it in both `.env` and `backend/.env`, then wipe `pb_data/` and restart (or update it manually in the PocketBase admin UI at `/_/`).
 
 ---
 
@@ -118,7 +136,7 @@ docker compose up -d --force-recreate backend
 ### New npm package
 
 ```bash
-# Add to frontend/package.json or run npm install in the container:
+# Add to frontend/package.json, then:
 docker compose build frontend
 docker compose up -d --force-recreate frontend
 ```
@@ -147,6 +165,8 @@ rm -rf pb_data/
 docker compose up -d
 ```
 
+The PocketBase admin account will be re-created automatically from your `.env` on the next boot.
+
 ---
 
 ## 7. Running services outside Docker (optional)
@@ -164,7 +184,7 @@ playwright install chromium
 uvicorn app.main:app --reload --port 7120
 ```
 
-Set `POCKETBASE_URL=http://localhost:7130` in `backend/.env` when running outside Docker.
+Set `POCKETBASE_URL=http://localhost:7130` in `backend/.env` when running outside Docker (this is already the default in the example file).
 
 ### Frontend
 

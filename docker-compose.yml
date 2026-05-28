@@ -4,7 +4,7 @@ services:
     ports:
       - "127.0.0.1:7110:7110"
     env_file:
-      - ./frontend/.env.local
+      - ./frontend/.env
     environment:
       - INTERNAL_API_URL=http://backend:7120
       # Force polling so Next.js HMR detects synced files on Windows/Docker

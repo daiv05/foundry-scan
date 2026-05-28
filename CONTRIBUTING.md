@@ -50,7 +50,7 @@ alcsaas/
 Copy the example files and fill in your values:
 
 ```bash
-cp .env.example .env.local           # docker-compose overrides (optional)
+cp .env.example .env           # docker-compose overrides (optional)
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```

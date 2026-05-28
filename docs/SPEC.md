@@ -746,7 +746,7 @@ TRENDS_GEO=US
 TRENDS_TIMEFRAME=today 3-m
 ```
 
-**`frontend/.env.local` (solo dev fuera de Docker):**
+**`frontend/.env` (solo dev fuera de Docker):**
 
 ```
 PORT=7110
@@ -804,7 +804,7 @@ TRENDS_GEO=US
 TRENDS_TIMEFRAME=today 3-m
 ```
 
-**`frontend/.env.local` (only dev outside Docker):**
+**`frontend/.env` (only dev outside Docker):**
 
 ```
 PORT=7110

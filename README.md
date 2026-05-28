@@ -78,7 +78,7 @@ cd foundry-scan
 
 ```bash
 cp backend/.env.example  backend/.env
-cp frontend/.env.local.example  frontend/.env.local
+cp frontend/.env.example  frontend/.env
 ```
 
 Edit `backend/.env` - the only value you **must** change is `PB_ADMIN_PASSWORD`. Everything else works out of the box.
