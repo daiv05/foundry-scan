@@ -1,0 +1,34 @@
+# docker-compose.override.yml — loaded automatically by Docker Compose for local development.
+# DO NOT use this file in production. For production, run:
+#   docker compose -f docker-compose.yml up -d --build
+#
+# This file:
+#   - Switches the frontend to the dev build stage (npm run dev + HMR)
+#   - Enables --reload on the backend (uvicorn auto-restarts on .py changes)
+#   - Adds file sync (develop.watch) so changes apply without full rebuilds
+
+services:
+  frontend:
+    build:
+      target: dev
+    environment:
+      # Force polling so Next.js HMR detects synced files on Windows/Docker
+      - WATCHPACK_POLLING=true
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+        - action: sync
+          path: ./frontend/public
+          target: /app/public
+        - action: rebuild
+          path: ./frontend/package.json
+
+  backend:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 7120 --reload
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend
+          target: /app

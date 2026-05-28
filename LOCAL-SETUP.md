@@ -80,6 +80,8 @@ Everything else works out of the box:
 docker compose up --build
 ```
 
+`docker compose up` automatically loads `docker-compose.override.yml` alongside `docker-compose.yml`. The override configures the frontend dev build stage (`npm run dev`) and enables `--reload` on the backend — so this is the development mode by default.
+
 First build downloads Playwright Chromium (~170 MB) and all Python/Node dependencies. It takes **3–5 minutes** once and is fast on subsequent starts.
 
 | Service | URL |
@@ -90,7 +92,7 @@ First build downloads Playwright Chromium (~170 MB) and all Python/Node dependen
 
 ### PocketBase first boot
 
-On first run, the PocketBase container automatically creates the admin account using `PB_ADMIN_EMAIL` and `PB_ADMIN_PASSWORD` from the root `.env`. This is idempotent - if the account already exists, the step is silently skipped.
+On first run, the PocketBase container automatically creates the admin account using `PB_ADMIN_EMAIL` and `PB_ADMIN_PASSWORD` from the root `.env`. This is idempotent — if the account already exists, the step is silently skipped.
 
 If you change the password after the first run, update it in both `.env` and `backend/.env`, then wipe `pb_data/` and restart (or update it manually in the PocketBase admin UI at `/_/`).
 
@@ -120,6 +122,8 @@ For regular use without watch mode (e.g. after pulling updates):
 ```bash
 docker compose up -d
 ```
+
+> This still loads the override file and runs in development mode. For a production-like local test without the override, see §3 in [PROD-SETUP.md](PROD-SETUP.md).
 
 ---
 

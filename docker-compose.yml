@@ -1,26 +1,17 @@
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      # No target specified → builds through the final stage (prod).
+      # docker-compose.override.yml sets target: dev for local development.
     ports:
       - "127.0.0.1:7110:7110"
     env_file:
       - ./frontend/.env
     environment:
       - INTERNAL_API_URL=http://backend:7120
-      # Force polling so Next.js HMR detects synced files on Windows/Docker
-      - WATCHPACK_POLLING=true
     depends_on:
       - backend
-    develop:
-      watch:
-        - action: sync
-          path: ./frontend/src
-          target: /app/src
-        - action: sync
-          path: ./frontend/public
-          target: /app/public
-        - action: rebuild
-          path: ./frontend/package.json
 
   backend:
     build: ./backend
@@ -33,11 +24,6 @@ services:
       - POCKETBASE_URL=http://pocketbase:7130
     depends_on:
       - pocketbase
-    develop:
-      watch:
-        - action: sync+restart
-          path: ./backend
-          target: /app
 
   pocketbase:
     build: ./pocketbase

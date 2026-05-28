@@ -1,4 +1,3 @@
-# Use the official Playwright image - includes Chromium + all system deps
 FROM mcr.microsoft.com/playwright/python:v1.49.0-jammy
 
 WORKDIR /app
@@ -9,4 +8,4 @@ COPY . .
 
 EXPOSE 7120
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7120", "--reload"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7120"]

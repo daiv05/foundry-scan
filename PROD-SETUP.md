@@ -48,13 +48,17 @@ NEXT_PUBLIC_PB_URL=https://yourdomain.com/pb  # optional direct PB access
 
 > **PocketBase credentials:** the admin account is created automatically on first boot by the container entrypoint using the values from the root `.env`. The values in `backend/.env` must be identical - FastAPI uses them to authenticate every request. If you ever change the password, update both files and restart both containers (or change it via the PocketBase admin UI at `/_/` first, then update both files).
 
-### 3. Start the stack
+### 3. Start the stack in production mode
 
 The services bind to `127.0.0.1` by default, so they are only reachable from the same machine. The reverse proxy or tunnel reaches them locally.
 
+Use the `-f` flag to load **only** `docker-compose.yml`, skipping the dev override:
+
 ```bash
-docker compose up -d --build
+docker compose -f docker-compose.yml up -d --build
 ```
+
+> **Why `-f`?** Without it, Docker Compose automatically loads `docker-compose.override.yml`, which enables the Next.js dev server and uvicorn `--reload`. In production you want the built Next.js app (`npm start`) and uvicorn without reload.
 
 ---
 
@@ -260,14 +264,14 @@ No code changes are needed; Cloudflare enforces authentication at the edge befor
 
 ```bash
 git pull
-docker compose build
-docker compose up -d --force-recreate
+docker compose -f docker-compose.yml build
+docker compose -f docker-compose.yml up -d --force-recreate
 ```
 
 If migrations were added (check `pocketbase/pb_migrations/` in the diff), rebuild PocketBase first:
 
 ```bash
-docker compose build pocketbase
-docker compose up -d --force-recreate pocketbase
-docker compose up -d --force-recreate backend   # re-auth after PB restart
+docker compose -f docker-compose.yml build pocketbase
+docker compose -f docker-compose.yml up -d --force-recreate pocketbase
+docker compose -f docker-compose.yml up -d --force-recreate backend   # re-auth after PB restart
 ```
