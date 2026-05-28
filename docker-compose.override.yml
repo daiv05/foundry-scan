@@ -1,6 +1,6 @@
-# docker-compose.override.yml — loaded automatically by Docker Compose for local development.
-# DO NOT use this file in production. For production, run:
-#   docker compose -f docker-compose.yml up -d --build
+# docker-compose.override.yml — loaded automatically by Docker Compose alongside docker-compose.yml.
+# Activates development mode: HMR on the frontend, --reload on the backend, and file sync so
+# changes apply without full rebuilds. Run with: docker compose up [--watch]
 #
 # This file:
 #   - Switches the frontend to the dev build stage (npm run dev + HMR)

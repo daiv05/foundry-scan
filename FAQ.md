@@ -43,7 +43,7 @@ FoundryScan stores:
 
 Raw collection data is automatically deleted after **30 days** for scans stuck in `awaiting_llm_input` status. Everything else is kept until you manually delete or archive it.
 
-No data leaves your machine unless you deploy to a public server. There are no analytics, no telemetry, and no external calls other than fetching data from the configured sources.
+No data leaves your machine. There are no analytics, no telemetry, and no external calls other than fetching data from the configured sources.
 
 ---
 

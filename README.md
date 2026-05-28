@@ -160,7 +160,6 @@ See [`docs/features/F04-default-collector.md`](docs/features/F04-default-collect
 | Document | Contents |
 |---|---|
 | [LOCAL-SETUP.md](LOCAL-SETUP.md) | Full env variable reference, hot-reload dev workflow, rebuilding tips |
-| [PROD-SETUP.md](PROD-SETUP.md) | Nginx reverse proxy config, Cloudflare Tunnel setup, Cloudflare Access |
 | [FAQ.md](FAQ.md) | Why no LLM API, PocketBase rationale, common questions, dev tips |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Code style, adding collectors, PR process |
 | [LEGAL.md](LEGAL.md) | Data collection disclaimer, third-party ToS notes, responsible use |

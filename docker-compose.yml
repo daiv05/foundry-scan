@@ -2,8 +2,8 @@ services:
   frontend:
     build:
       context: ./frontend
-      # No target specified → builds through the final stage (prod).
-      # docker-compose.override.yml sets target: dev for local development.
+      # No target specified  runs the optimized Next.js build (npm start).
+      # docker-compose.override.yml overrides this to the dev stage (npm run dev + HMR).
     ports:
       - "127.0.0.1:7110:7110"
     env_file:

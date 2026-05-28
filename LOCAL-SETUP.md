@@ -123,8 +123,6 @@ For regular use without watch mode (e.g. after pulling updates):
 docker compose up -d
 ```
 
-> This still loads the override file and runs in development mode. For a production-like local test without the override, see §3 in [PROD-SETUP.md](PROD-SETUP.md).
-
 ---
 
 ## 5. Rebuilding after dependency or migration changes
