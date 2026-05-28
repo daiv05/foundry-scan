@@ -34,19 +34,12 @@ PB_ADMIN_PASSWORD=<strong-random-password>
 Edit `backend/.env` - used by FastAPI to authenticate against PocketBase at runtime:
 
 ```bash
-PB_ADMIN_EMAIL=you@yourdomain.com        # must match root .env
+PB_ADMIN_EMAIL=you@yourdomain.com           # must match root .env
 PB_ADMIN_PASSWORD=<strong-random-password>  # must match root .env
-FRONTEND_ORIGIN=https://yourdomain.com   # must match the public URL
+FRONTEND_ORIGIN=https://yourdomain.com      # must match the public frontend URL
 ```
 
-Edit `frontend/.env`:
-
-```bash
-NEXT_PUBLIC_API_URL=https://yourdomain.com    # same domain, proxied via /api
-NEXT_PUBLIC_PB_URL=https://yourdomain.com/pb  # optional direct PB access
-```
-
-> **PocketBase credentials:** the admin account is created automatically on first boot by the container entrypoint using the values from the root `.env`. The values in `backend/.env` must be identical - FastAPI uses them to authenticate every request. If you ever change the password, update both files and restart both containers (or change it via the PocketBase admin UI at `/_/` first, then update both files).
+> **PocketBase credentials:** the admin account is created automatically on first boot by the container entrypoint using the values from the root `.env`. The values in `backend/.env` must be identical - FastAPI uses them to authenticate every request. If you ever change the password, update both files and restart both containers (or change it via the PocketBase admin UI first, then update both files).
 
 ### 3. Start the stack in production mode
 
@@ -165,7 +158,7 @@ sudo systemctl status certbot.timer
 
 ## Option B - Cloudflare Tunnel
 
-Cloudflare Tunnel creates an outbound-only encrypted connection from your server to Cloudflare's edge - no open ports required.
+Cloudflare Tunnel creates an outbound-only encrypted connection from your server to Cloudflare's edge - no open ports required. Cloudflare terminates TLS at the edge; all ingress services must use `http://` pointing to local ports.
 
 ### Prerequisites
 
@@ -199,30 +192,34 @@ Note the **Tunnel ID** printed after creation.
 
 ### 3. Configure the tunnel
 
-Create `~/.cloudflared/config.yml`:
+Create `~/.cloudflared/config.yml`. Use `http://` for every service — **never `https://`**; the backend and PocketBase don't serve TLS, and using `https://` will cause `ERR_SSL_VERSION_OR_CIPHER_MISMATCH` in the browser:
 
 ```yaml
 tunnel: <TUNNEL-ID>
 credentials-file: /root/.cloudflared/<TUNNEL-ID>.json
 
 ingress:
-  # All traffic --> frontend
   - hostname: yourdomain.com
     service: http://localhost:7110
 
-  # Backend API on a subdomain (optional - or proxy /api via Nginx internally)
   - hostname: api.yourdomain.com
     service: http://localhost:7120
+
+  - hostname: pb.yourdomain.com
+    service: http://localhost:7130
 
   # Catch-all required by cloudflared
   - service: http_status:404
 ```
 
+> The `api.` and `pb.` subdomains are optional. If you only expose the frontend, the Next.js rewrite (`/api/*` → backend) handles all API traffic internally, so the browser never needs to reach the backend directly.
+
 ### 4. Route DNS to the tunnel
 
 ```bash
 cloudflared tunnel route dns foundryscan yourdomain.com
-cloudflared tunnel route dns foundryscan api.yourdomain.com   # if using subdomain
+cloudflared tunnel route dns foundryscan api.yourdomain.com
+cloudflared tunnel route dns foundryscan pb.yourdomain.com
 ```
 
 ### 5. Run as a system service
@@ -234,16 +231,18 @@ sudo systemctl enable cloudflared
 sudo systemctl status cloudflared
 ```
 
-### 6. Update `FRONTEND_ORIGIN` in `backend/.env`
+### 6. Update env vars and restart
+
+In `backend/.env`:
 
 ```bash
 FRONTEND_ORIGIN=https://yourdomain.com
 ```
 
-Then restart the backend:
+Then apply:
 
 ```bash
-docker compose up -d --force-recreate backend
+docker compose -f docker-compose.yml up -d --force-recreate backend
 ```
 
 ### 7. (Optional) Restrict access with Cloudflare Access
