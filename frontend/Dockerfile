@@ -14,6 +14,10 @@ FROM node:24-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Make INTERNAL_API_URL available at build time so Next.js rewrites are baked
+# with the correct Docker service name instead of falling back to localhost.
+ARG INTERNAL_API_URL=http://backend:7120
+ENV INTERNAL_API_URL=${INTERNAL_API_URL}
 RUN npm run build
 
 FROM node:24-alpine AS prod
