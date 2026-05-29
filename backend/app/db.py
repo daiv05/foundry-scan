@@ -52,21 +52,35 @@ class PocketBaseClient:
     def _headers(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {self._token}"} if self._token else {}
 
+    async def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+        """Execute an HTTP request, refreshing the token once on 401/403."""
+        kwargs.setdefault("headers", {}).update(self._headers())
+        resp = await self._http.request(method, path, **kwargs)
+        if resp.status_code in (401, 403):
+            logger.warning(
+                "PocketBase returned %s — token may have expired, re-authenticating.",
+                resp.status_code,
+            )
+            await self._authenticate()
+            kwargs["headers"].update(self._headers())
+            resp = await self._http.request(method, path, **kwargs)
+        return resp
+
     # ── CRUD helpers ─────────────────────────────────────────────────────────
 
     async def create(self, collection: str, data: dict[str, Any]) -> dict[str, Any]:
-        resp = await self._http.post(
+        resp = await self._request(
+            "POST",
             f"/api/collections/{collection}/records",
             json=data,
-            headers=self._headers(),
         )
         resp.raise_for_status()
         return resp.json()
 
     async def get_one(self, collection: str, record_id: str) -> dict[str, Any]:
-        resp = await self._http.get(
+        resp = await self._request(
+            "GET",
             f"/api/collections/{collection}/records/{record_id}",
-            headers=self._headers(),
         )
         resp.raise_for_status()
         return resp.json()
@@ -82,10 +96,10 @@ class PocketBaseClient:
         params: dict[str, Any] = {"page": page, "perPage": per_page, "sort": sort}
         if filter:
             params["filter"] = filter
-        resp = await self._http.get(
+        resp = await self._request(
+            "GET",
             f"/api/collections/{collection}/records",
             params=params,
-            headers=self._headers(),
         )
         resp.raise_for_status()
         return resp.json()
@@ -93,10 +107,10 @@ class PocketBaseClient:
     async def update(
         self, collection: str, record_id: str, data: dict[str, Any]
     ) -> dict[str, Any]:
-        resp = await self._http.patch(
+        resp = await self._request(
+            "PATCH",
             f"/api/collections/{collection}/records/{record_id}",
             json=data,
-            headers=self._headers(),
         )
         if not resp.is_success:
             logger.error(
@@ -106,9 +120,9 @@ class PocketBaseClient:
         return resp.json()
 
     async def delete(self, collection: str, record_id: str) -> None:
-        resp = await self._http.delete(
+        resp = await self._request(
+            "DELETE",
             f"/api/collections/{collection}/records/{record_id}",
-            headers=self._headers(),
         )
         resp.raise_for_status()
 
